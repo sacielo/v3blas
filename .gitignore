@@ -1,0 +1,4 @@
+# build/test artifacts
+tests/test_v3
+*.o
+*.so
