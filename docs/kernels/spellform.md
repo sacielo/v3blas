@@ -212,27 +212,31 @@ symbols.**
 
 ## Per-op argument forms
 
-Rule (from `../../README.md` §Public API): `n` first, then remaining operands
-in order of first appearance on the RHS, left to right; scalars where
-their term spells them; a fresh output last; in-place outputs reuse
-their single pointer. c/z precisions take complex scalars (pairs of
-reals) in the same slots.
+Rule (from `../../README.md` §Public API): operands in order of first
+appearance on the RHS, left to right; scalars where their term spells
+them; a fresh output last; in-place outputs reuse their single pointer.
+Layer-1 vector args are **descriptor pointers** (`s3v*/d3v*/c3v*/z3v*`)
+and there is **no `n`** — the descriptor carries the length, which also
+sizes plain scalar-array outputs. Layer-0 args are plain array pointers
+with `n` first, BLAS-style. c/z precisions take complex scalars (pairs
+of reals) in the same slots.
 
-Layer 1:
+Layer 1 (capital = `d3v *`; lowercase `r` = plain array, sized by the
+descriptors' `n`):
 
-| args            | kernels |
-|-----------------|---------|
-| (n, a, x)       | `xeax` |
-| (n, a, x, b, y) | `yeaxpby` |
-| (n, a, x, y)    | `yeax`, `yeaxxpy`, `yeaxxmy`, `yeaxoy`, `yeayox` |
-| (n, x, y)       | `yexx` |
-| (n, x, r)       | `rexdx` |
-| (n, x, y, z)    | `zexy`, `zexvy`, `zexoy`, `zexxpyy`, `zexxmxyy`, `zexvyvz` |
-| (n, a, x, y, z) | `zeaxy`, `zeaxvy`, `zeaxypz`, `zeaxymz`, `zeaxyoz`, `zeaxzoy`, `zeaxyz` |
-| (n, x, y, r)    | `rexdy`, `rexvyxdvy` |
-| (n, x, y, z, r) | `rexvydz` |
+| args         | kernels |
+|--------------|---------|
+| (a, X)       | `xeax` |
+| (a, X, b, Y) | `yeaxpby` |
+| (a, X, Y)    | `yeax`, `yeaxxpy`, `yeaxxmy`, `yeaxoy`, `yeayox` |
+| (X, Y)       | `yexx` |
+| (X, r)       | `rexdx` |
+| (X, Y, Z)      | `zexy`, `zexvy`, `zexoy`, `zexxpyy`, `zexxmxyy`, `zexvyvz` |
+| (a, X, Y, Z)   | `zeaxy`, `zeaxvy`, `zeaxypz`, `zeaxymz`, `zeaxyoz`, `zeaxzoy`, `zeaxyz` |
+| (X, Y, r)      | `rexdy`, `rexvyxdvy` |
+| (X, Y, Z, r)   | `rexvydz` |
 
-Layer 0:
+Layer 0 (plain arrays; `n` first):
 
 | args            | kernels |
 |-----------------|---------|
@@ -244,22 +248,23 @@ Layer 0:
 
 ## Composed operations (no domain names in the API)
 
-The beachhead composes from the generic set:
+The beachhead composes from the generic set (vector args are
+descriptors, shown as `&name`; Layer-0 calls keep their `n`):
 
-    F = (∇×B)×B/μ₀      d3zeaxvy(curlB, B, 1/mu0, F)        one call
-    S = (E×B)/μ₀        d3zeaxvy(E, B, 1/mu0, S)            one call
-    Q = ‖∇×B‖²/σ        d3rexdx(curlB, q);  dscal(1/sigma, q, n)
-    h = B·(∇×B)         d3rexdy(B, curlB, h)
+    F = (∇×B)×B/μ₀      d3zeaxvy(&curlB, &B, &mu0i, &F)       one call
+    S = (E×B)/μ₀        d3zeaxvy(&E, &B, &mu0i, &S)           one call
+    Q = ‖∇×B‖²/σ        d3rexdx(&curlB, q);  dscal(n, &sigmai, q)
+    h = B·(∇×B)         d3rexdy(&B, &curlB, h)
     particle Lorentz    t = v×B;  F = q·t + q·E
-                        d3zexvy(v, B, t);  d3yeaxpby(t, E, q, q, F)
+                        d3zexvy(&v, &B, &t);  d3yeaxpby(&t, &E, &q, &q, &F)
 
 Field coefficients and mixed-component products are structure-blind, so
 they live in Layer 0 (a coefficient that is itself a *field*, and
 products of *different* components, are plain 1D-array ops with no v3
 form):
 
-    rho*v.x²    (flux/stress diagonal)  dserr(v.x, tmp);     dters(rho, tmp, out)
-    rho*v.x*v.y (off-diagonal)          dters(v.x, v.y, tmp); dters(rho, tmp, out)
+    rho*v.x²    (flux/stress diagonal)  dserr(n, v.x, tmp);     dters(n, rho, tmp, out)
+    rho*v.x*v.y (off-diagonal)          dters(n, v.x, v.y, tmp); dters(n, rho, tmp, out)
 
 The old doc's `d3_lorentz`/`d3_poynting` are removed from the API: they
 were physics branding on `zeaxvy`. Shared-operand fusions for the

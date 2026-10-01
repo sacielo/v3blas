@@ -16,21 +16,20 @@ the *genericity mechanism* differs.
 
 ## Design guidelines
 
-- **One generic type:** a `v3<T>` struct of three component pointers plus
-  `n`, instantiated for `float`, `double`, complex float, complex double
-  — same s/d/c/z roles as BLAS. One type, four instantiations, one kernel
-  body per op. (The C analogue cannot exist — no templates — which is
-  why the C path uses the preprocessor and the ABI never mentions the
-  struct.)
+- **One generic descriptor:** `v3<T>` = `{ T *x, *y, *z; long n; }` —
+  the same single-pointer fat view the spec defines (SoA components),
+  instantiated for `float`, `double`, complex float, complex double.
+  One type, four instantiations; `create`/`wrap`/`slice`/`free` as
+  inline templates mirroring the C constructors. One kernel body per
+  op.
 - **One template body per family**, instantiated four times per op;
   symbol-level prefixes only (`s3_`, `d3_`, `c3_`, `z3_`) — precision must
   not appear in the body.
-- **C facade:** C callers get four plain typedefs generated from one
-  macro pattern (`{ T *x,*y,*z; int n; }` → `s3v`, `d3v`, `c3v`, `z3v`),
-  and thin wrapper functions that translate struct-in → flat-pointers →
-  call the template kernel. The public ABI stays the flat-pointer,
-  Fortran-compatible form defined in `../../README.md` — the struct is a
-  calling convenience, never the ABI.
+- **C facade:** the C descriptor typedefs (`s3v`, `d3v`, `c3v`, `z3v`)
+  *are* the layout (one macro over `{ T *x,*y,*z; long n; }`); the
+  template is the same shape. Layer-1 public entries take the
+  descriptor pointer — one argument per vector; internal kernels stay
+  flat-pointer, entries unwrap (exactly as in `OpenBLAS.md`).
 - **Layer 0 needs no struct and no template argument struct at all:**
   its operands are plain 1D arrays; a `template <typename T>` free
   function per kernel, same four instantiations.
@@ -46,8 +45,8 @@ the *genericity mechanism* differs.
 1. The primary target (OpenBLAS) is C-only: its build never invokes a
    C++ compiler. The preprocessor idiom is strictly better there — it is
    the library's own mechanism for `saxpy`.
-2. The flat-pointer ABI decision (see `../../README.md`, Public API) removed
-   the one thing the template design was buying at the API level: the
-   single generic struct. What remains of its value (one body, type
-   safety at the call site) is caller-side sugar and can be a header
-   over the C symbols later.
+2. The descriptor ABI (see `../../README.md`, Public API) is a plain C
+   struct reachable through a macro, so the template's one remaining
+   API-level asset — the single generic struct — is matched by the C
+   path itself. What survives of the template's value (one body, type
+   safety at the call site) is caller-side sugar over the C symbols.

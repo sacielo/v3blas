@@ -69,25 +69,59 @@ Design principle 3). The compositions over the kernel set are spelled out in
 
 ## Public API (wrapper definitions)
 
-Every entry is **flat-pointer, BLAS/Fortran-ABI**: all arguments passed by
-reference, `n` an int, arrays pointers, scalars pointers. No struct in the
-ABI, no allocation, no new library: the symbols land inside `libblas` next
-to `saxpy`/`daxpy` and link with `-lblas` alone. (A per-precision struct
-typedef may be offered in the header as pure C-caller sugar; it changes
-nothing linkable.)
+Every entry follows the BLAS/Fortran-ABI: all arguments passed by
+reference, scalars by pointer, **one argument per operand**. A Layer-0
+operand is a plain array pointer; a Layer-1 3-vector operand is a
+**single pointer to a per-precision vector descriptor** (§Vector
+handles) — the fat view that keeps SoA component arrays behind one
+argument. No allocation inside the calls, no new library: the symbols
+land inside `libblas` next to `saxpy`/`daxpy` and link with `-lblas`
+alone.
 
 **Symbol form:** `<precision><name>_`, precision ∈ {s, d, c, z}. Layer 1
 names carry the `3` marker (`d3zeaxvy_`); Layer 0 names do not (`dters_`).
 C-callers use the same symbols without the trailing underscore, exactly as
 for stock BLAS.
 
-**Argument order is mechanical — the name is the signature:** `n` first,
-then the remaining operands in order of first appearance on the
-right-hand side, left to right; scalars appear where their term spells
-them; a fresh output comes last; in-place outputs reuse their single
-pointer. The c/z precisions take complex scalars (a pair of reals) in
-the same slots. (The per-op enumeration for the current kernel set:
+**Argument order is mechanical — the name is the signature:** operands
+in order of first appearance on the right-hand side, left to right;
+scalars appear where their term spells them; a fresh output comes last;
+in-place outputs reuse their single pointer. Layer 1 carries **no `n`
+argument** — the descriptor's length is the length (plain scalar-array
+outputs are sized by it); Layer 0 takes `n` first, BLAS-style. The c/z
+precisions take complex scalars (a pair of reals) in the same slots.
+(The per-op enumeration for the current kernel set:
 `docs/kernels/spellform.md` §Per-op argument forms.)
+
+### Vector handles (layout & constructors)
+
+**Layout: SoA, not AoS.** A 3-vector is three contiguous component
+arrays — kernels sweep components, so each component array must be
+contiguous (stride 1 in v1). The components need not be adjacent to
+*each other*; what makes them one vector is the descriptor:
+
+    typedef struct { T *x, *y, *z; long n; } d3v;   /* s3v, d3v, c3v, z3v */
+
+One `d3v *` is one argument — the single pointer per vector — and the
+descriptor is a *view*: it owns nothing, same role as `lda` in `dgemm`.
+Constructors (plain C, declared in the same header):
+
+- `d3v_create(v, n)` — build from nothing: one aligned block carved
+  into three cache-line-aligned slabs plus SIMD tail padding — a hidden
+  padded slot per element so kernels may write full registers past `n`
+  without masked tails. An allocator policy; the API never reveals it
+  (the "quaternion" stays invisible).
+- `d3v_wrap(v, n, x, y, z)` — aggregate a vector from existing plain
+  arrays, zero-copy. Wrapped vectors carry no padding/alignment
+  guarantee, so kernels keep a tail path.
+- `d3v_slice(dst, src, off, len)` — sub-run view (halo-row interiors);
+  what `x + (i-1)*incx` does in BLAS.
+- `d3v_free(v)` — release a `create`-ed vector; the only allocation in
+  the story, explicit and caller-side.
+
+The descriptor fields are the ABI (v2's stride gets an `inc` field —
+the slot is conceptually reserved). Layer-0 kernels consume `v->x`,
+`v->y`, `v->z` directly: aggregation runs both ways.
 
 **Wrapper (entry) behavior.** The public entry handles the edge cases —
 `n ≤ 0` → return; for kernels whose *entire* RHS is `a·(…)`, `a = 0` →
@@ -99,10 +133,10 @@ kernel body, and build registration are per target library — see
 
 ## Coding principles (memory model)
 
-- No allocation in the API. Caller owns all pointers (same as BLAS): each
-  call is a *view* over caller arrays, owning no state — same role as `lda`
-  in `dgemm`. On GPU backends the pointers are device pointers (same as
-  cuBLAS); the user allocates via their platform's allocator.
+- The only allocation is explicit: `*_create`/`*_free`, caller-side (on
+  GPU backends through the platform's allocator — same as cuBLAS).
+  Everything else is a view: descriptors own no state — same role as
+  `lda` in `dgemm`.
 - Inputs are `const`. Outputs are write-only, fresh, caller-provided; the
   in-place siblings additionally read their LHS operand (per-element, so
   aliasing is safe by construction).
@@ -139,12 +173,13 @@ two layer definitions and their counts: `docs/kernels/spellform.md`.
 - **Strides (v2 — requirement confirmed: halo-padded and staggered
   storage exist in target codes).** v1 works on dense runs only, but a
   *sub-run* is already expressible in v1 by pointer offset + shorter `n`
-  (a call is a view — same as BLAS subvectors via `x + (i-1)*incx`);
+  (a descriptor is a view — `slice` is exactly what `x + (i-1)*incx`
+  does in BLAS);
   e.g. row interiors of a halo-padded 2D grid are processed by per-row
   calls, no copies. What v1 cannot do in one call: a *strided*
   subsequence (`inc ≠ 1`) — a column of padded rows, even/odd
-  sub-lattices, interleaved components. v2 design: one extra `long inc`
-  pointer argument (applied to all three components); kernel = entry
+  sub-lattices, interleaved components. v2 design: an `inc` field on
+  the descriptor (applied to all three components); kernel = entry
   branch exactly like `daxpy` — `inc == 1` → the fast SIMD loop, else
   scalar stepping loop. A single `inc` expresses 1D arithmetic
   progressions only; a 2D interior of per-row-halo storage is a set of
@@ -239,6 +274,17 @@ guidelines document:
     evolve with the kernel set, so they ship in the swappable file; the
     introduction keeps only the invariant principle (§Design
     principles 2).
+16. **Layout decision: SoA behind a single-pointer descriptor.**
+    Component arrays are contiguous (kernels sweep components; AoS
+    stride-3 lanes would tax every SIMD loop), but a vector is still
+    one argument: a pointer to a per-precision view `{x, y, z, n}`
+    with `create`/`wrap`/`slice`/`free` constructors. The fresh-vector
+    allocator may pad a hidden slot per element (alignment +
+    register-safe tails — "quaternion" padding the API never shows).
+    Layer 1 drops the `n` argument (length lives in the descriptor);
+    Layer 0 keeps the flat BLAS shape; internal `_k` kernels stay
+    flat-pointer — entries unwrap descriptors. Supersedes the earlier
+    "flat pointers, struct is sugar" API stance for Layer 1.
 
 ## Open items (not yet decided)
 

@@ -64,8 +64,10 @@ plus:
 
 - `interface/v3.c`, `interface/ew.c` — public entries (pattern:
   `interface/axpy.c`),
-- `include/d3.h`, `include/ew.h` — user prototypes (flat pointers;
-  optional per-precision struct typedef sugar for C callers),
+- `include/d3.h`, `include/ew.h` — the descriptor typedefs (`s3v`…
+  `z3v`: `{ T *x, *y, *z; long n; }`), constructor prototypes
+  (`*_create`/`*_wrap`/`*_slice`/`*_free`), and user prototypes for
+  both layers,
 - appended `_k` prototypes in `common_level1.h`,
 - registration: one `ifndef` block in `kernel/Makefile.L1` +
   `SetDefaultL1` fallback lines in `cmake/kernel.cmake`, mapping each
@@ -76,11 +78,13 @@ plus:
 - Real and complex are separate files (axpy.c/zaxpy.c precedent): the
   complex body works on `FLOAT` re/im pairs; the real body on plain
   `FLOAT`.
-- v1 kernels take the public argument shape (n + scalars + array
-  pointers, contiguous). Do **not** copy `daxpy_k`'s 10-slot dummy ABI —
-  those slots exist for the SMP dispatch we don't use in v1. When SMP
-  arrives, entries adopt the `blas_level1_thread` pattern and the ABI
-  grows then.
+- The `_k` kernel ABI stays **flat**: explicit `n` + scalars +
+  component pointers, contiguous. Public entries unwrap the `d3v`
+  descriptors (length taken from the descriptor) and call flat kernels
+  — kernel bodies never see the descriptor. Do **not** copy
+  `daxpy_k`'s 10-slot dummy ABI — those slots exist for the SMP dispatch
+  we don't use in v1. When SMP arrives, entries adopt the
+  `blas_level1_thread` pattern and the ABI grows then.
 - One `*_CORE`-style inner loop per kernel: unrolled streaming pass, no
   tiling (memory-bound by design). FMA shape per the spec's inner-loop
   table (`fma(a,b,c)` wherever a multiply feeds an add; pure
@@ -90,8 +94,17 @@ plus:
 - Complex: flat interleaved, scaled kernels take `(a_r, a_i)`; never
   conjugate; keep the `#if !defined(CONJ)`-style switch dormant so the
   Hermitian variant is a later, additive decision.
-- Entries: edge cases per the spec (n ≤ 0; full-RHS-scaled kernels with
-  a = 0 → store zeros); then one call into the `_k` kernel.
+- Entries: unwrap descriptors (n from the descriptor, consistency of
+  all vector operands checked once), edge cases per the spec (n ≤ 0;
+  full-RHS-scaled kernels with a = 0 → store zeros); then one flat call
+  into the `_k` kernel.
+- Allocator (`*_create`): one aligned block → three 64-byte-aligned
+  component slabs + tail padding ≥ the widest SIMD register, so kernels
+  may store full registers past `n` (the hidden padded slot per element
+  — never visible in the API). `*_wrap`-ed vectors carry no such
+  guarantee: kernels keep a masked/scalar tail, and the entry picks the
+  fast path from an alignment test (or a flag the descriptor reserves).
+  `*_slice` inherits its source's guarantee.
 
 ### Naming inside the tree
 
