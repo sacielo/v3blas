@@ -1,3 +1,4 @@
 [submodule "subm/openblas"]
 	path = subm/openblas
 	url = https://github.com/OpenMathLib/OpenBLAS.git
+	branch = v0.3.34

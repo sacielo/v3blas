@@ -16,23 +16,29 @@ the *genericity mechanism* differs.
 
 ## Design guidelines
 
-- **One generic descriptor:** `v3<T>` = `{ T *x, *y, *z; long n; }` —
+- **One generic descriptor:** `v3<T>` = `{ T *x, *y, *z; int64_t n, inc; }` —
   the same single-pointer fat view the spec defines (SoA components),
   instantiated for `float`, `double`, complex float, complex double.
   One type, four instantiations; `create`/`wrap`/`slice`/`free` as
   inline templates mirroring the C constructors. One kernel body per
   op.
 - **One template body per family**, instantiated four times per op;
-  symbol-level prefixes only (`s3_`, `d3_`, `c3_`, `z3_`) — precision must
-  not appear in the body.
-- **C facade:** the C descriptor typedefs (`s3v`, `d3v`, `c3v`, `z3v`)
-  *are* the layout (one macro over `{ T *x,*y,*z; long n; }`); the
-  template is the same shape. Layer-1 public entries take the
-  descriptor pointer — one argument per vector; internal kernels stay
+  symbol-level prefixes only (`s3_`, `d3_`, `c3_`, `z3_` and the `d1_`
+  family) — precision must not appear in the body.
+- **C facade:** the C handle typedefs (`s3v`, `d3v`, `c3v`, `z3v` and
+  `s1v`…`z1v`) *are* the layout (one macro over
+  `{ T *x,*y,*z; blaslong n, inc, cinc; }` and `{ T *p; blaslong n, inc; }`);
+  the template is the same shape. Layer-1 public entries take the
+  handle pointer — one argument per vector; internal kernels stay
   flat-pointer, entries unwrap (exactly as in `OpenBLAS.md`).
 - **Layer 0 needs no struct and no template argument struct at all:**
   its operands are plain 1D arrays; a `template <typename T>` free
   function per kernel, same four instantiations.
+- **C++ overloading is available here and is not part of the API.** The C
+  layer has one signature per symbol (no overloading, no default arguments),
+  so the C++ template can add convenience overloads in a C++-only header —
+  but the exported symbols are the flat ones, and the spec's argument forms
+  are the C ones.
 - Complex instantiations use the library's complex type or a
   two-`FLOAT` pair; semantics per spec: bilinear, no conjugation in v1.
 - Inner loops: same FMA-shape rules as the spec (`std::fma` where a
