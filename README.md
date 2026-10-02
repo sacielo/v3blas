@@ -73,7 +73,7 @@ operands. All three share the first operand and vary the second.
 | symbol | shape |
 |---|---|
 | `<p>3crossxy_crossxz` | `x∧y`, `x∧z` — div B |
-| `<p>3crossxy_dotxy` | `x∧y`, `x·y` |
+| `<p>3crossxy_dotxz` | `x∧y`, `x·z` |
 | `<p>3dotxy_dotxz` | `x·y`, `x·z` — Q, h |
 
 With x = y = ∇∧B and z = B, `<p>3dotxy_dotxz` gives Q₀ and h in one pass.
@@ -81,6 +81,10 @@ Passing the same handle twice is legal and free.
 
 F and S share `B` as the *second* operand of a non-commutative cross, so no
 fork shape can hold both.
+
+When a fork's second and third operands are the same handle, both clauses read
+one operand pair instead of two, and an implementation may take a shorter path
+for it. That is a licence, not a requirement: the result is the same either way.
 
 Forks cap at two outputs: a cross has three live component expressions, so two
 clauses need six and three would need nine, over x86-64's sixteen vector
@@ -236,7 +240,8 @@ void <p>3crosssqr (const <p>3v *x, const <p>3v *y, <p>1v *r);
 
 void <p>3crossxy_crossxz(const <p>3v *x, const <p>3v *y, const <p>3v *z,
                         <p>3v *c1, <p>3v *c2);
-void <p>3crossxy_dotxy  (const <p>3v *x, const <p>3v *y, <p>3v *c, <p>1v *r);
+void <p>3crossxy_dotxz  (const <p>3v *x, const <p>3v *y, const <p>3v *z,
+                        <p>3v *c, <p>1v *r);
 void <p>3dotxy_dotxz    (const <p>3v *x, const <p>3v *y, const <p>3v *z,
                         <p>1v *r1, <p>1v *r2);
 
@@ -431,6 +436,9 @@ products are bilinear.
 | broadcast repeats | `inc = 0` gives `z[i]` equal for all `i` |
 | Layer 0 ≡ Layer 1 at width 1 | `<p>1axpby(n,a,x,1,b,y,1,z,1)` ≡ `<p>3axpby` |
 | a fork ≡ its two calls | `<p>3crossxy_crossxz(x,y,z,c1,c2)` ≡ `<p>3cross(x,y,c1)`; `<p>3cross(x,z,c2)` |
+| the mixed fork ≡ its two calls | `<p>3crossxy_dotxz(x,y,z,c,r)` ≡ `<p>3cross(x,y,c)`; `<p>3dot(x,z,r)` |
+| the dot/dot fork ≡ its two calls | `<p>3dotxy_dotxz(x,y,z,r1,r2)` ≡ `<p>3dot(x,y,r1)`; `<p>3dot(x,z,r2)` |
+| a reused operand changes nothing | each fork called with `y` and `z` the same handle gives the same outputs as two separate calls |
 | clauses are independent | permuting `y`/`z` swaps `r1`/`r2`, changing neither |
 | shared operands are read, not consumed | inputs compare equal to their pre-call copies |
 | inputs are never written | every input buffer compares equal after the call |
