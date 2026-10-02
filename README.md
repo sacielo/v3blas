@@ -16,12 +16,26 @@ The MHD time loop this exists for, per grid point:
 d3crossscal(&curlB, &B, 1/mu0, &F);           /* F = (∇∧B)∧B / μ₀  */
 d3crossscal(&E,    &B, 1/mu0, &S);           /* S = (E∧B)   / μ₀  */
 d3dotxy_dotxz(&curlB, &curlB, &B, &Q0, &h);   /* Q₀, h — one pass  */
-d1axpby(Q0.n, 1/sigma, &Q0.p, Q0.inc, 0, &Q0.p, Q0.inc, &Q.p, Q.inc);
+d1axpby(Q0.n, 1/sigma, Q0.p, Q0.inc, 0, Q0.p, Q0.inc, Q.p, Q.inc);
 ```
 
 ---
 
 ## Kernel set — 19 bodies, 76 symbols
+
+Every symbol below is one instance of a four-precision family. Tables,
+prototypes and examples are written in double precision; `s3cross`, `c3cross`
+and `z3cross` are the same body with `d` replaced, and nothing below changes
+between them.
+
+`T` is the family's *real* element type — `float` for `s`, `double` for `d` and
+also for `c`/`z`, where one complex value occupies two adjacent `T`s. That is
+what CBLAS and OpenBLAS both do, so a `c3v` points into a buffer of `n` complex
+values and its pointer arithmetic moves by `2 * cinc` reals.
+
+19 bodies × 4 precisions is **76 kernel symbols**. Add the support symbols
+they need — 24 Layer-1 constructors, 12 Layer-0 constructors, 8 status
+functions — for **120 exported symbols** in all (§Acceptance criteria).
 
 ### Layer 1 — 3-vectors (10)
 
@@ -120,8 +134,8 @@ could never catch a precision mix.
 ## Handles
 
 ```c
-typedef struct { T *x, *y, *z; blaslong n, inc, cinc; } v3;  /* 48 B */
-typedef struct { T *p;            blaslong n, inc;      } v1;  /* 24 B */
+typedef struct { T *x, *y, *z; int64_t n, inc, cinc; } d3v;   /* 48 B */
+typedef struct { T *p;            int64_t n, inc;      } d1v;   /* 24 B */
 ```
 
 `cinc` is `3 * inc`, **stored rather than derived** — a component's stride is
@@ -131,16 +145,16 @@ kernel uses.
 
 ```c
 /* Layer 1 */
-d3v      *d3_create(blaslong n);                        /* the only allocation */
-d3v      *d3_wrap(d3v *out, T *base, blaslong n, blaslong inc);
+d3v      *d3_create(int64_t n);                             /* the only allocation */
+d3v      *d3_wrap(d3v *out, T *base, int64_t n, int64_t inc);
 d3v      *d3_wrap_component(d3v *out, const d3v *v, int k);
 d1v       d3_component(const d3v *v, int k);
-blaslong  d3_pitch(blaslong n);                         /* ((3n + 7) / 8) * 8 */
+int64_t   d3_pitch(int64_t n);                              /* ((3n + 7) / 8) * 8 */
 void      d3_destroy(d3v *v);
 
 /* Layer 0 */
-d1v      *d1_create(blaslong n);
-d1v      *d1_wrap(d1v *out, T *base, blaslong n, blaslong inc);
+d1v      *d1_create(blasint n);
+d1v      *d1_wrap(d1v *out, T *base, blasint n, blasint inc);
 void      d1_destroy(d1v *v);
 ```
 
@@ -155,11 +169,22 @@ matches it.
 Components are reachable through constructors, never kernels:
 
 ```c
-d1v Bx = d3_component(&B, 0);   /* p = B.x, n = B.n, inc = B.cinc */
+/* F = ∇∧v, entirely Layer 0 */
+d1v vx = d3_component(&v, 0);
+d1v vy = d3_component(&v, 1);
+d1v vz = d3_component(&v, 2);
+d1v Bx = d3_component(&B, 0);
+d1v By = d3_component(&B, 1);
+d1v Bz = d3_component(&B, 2);
+d1v *t = d1_create(n);
 
-/* div B, entirely Layer 0 */
-d1axpby(B.n, +1, vz.p, vz.inc, -1, By.p, By.inc, F.x, F.cinc);
-d1axpby(B.n, -1, vx.p, vx.inc, +1, Bz.p, Bz.inc, F.x, F.cinc);
+d1scal (B.n, +1, vy.p, vy.inc, t->p, t->inc);
+d1axpby(B.n, +1, t->p, t->inc, -1, vz.p, vz.inc, By.p, By.inc);  /* F.x */
+d1scal (B.n, +1, vz.p, vz.inc, t->p, t->inc);
+d1axpby(B.n, +1, t->p, t->inc, -1, vx.p, vx.inc, Bx.p, Bx.inc);  /* F.y */
+d1scal (B.n, +1, vx.p, vx.inc, t->p, t->inc);
+d1axpby(B.n, +1, t->p, t->inc, -1, vy.p, vy.inc, Bz.p, Bz.inc);  /* F.z */
+d1_destroy(t);
 ```
 
 ### The layer split
@@ -175,9 +200,9 @@ corresponding input components. Cross and dot violate exactly that, which is
 why they, and only they, need Layer 1.
 
 The layers are not closed off from each other. A component view plus Layer 0
-spells anything the theorem allows, at ~3× the traffic — the six-call div-B
-expansion above is one `d3cross` written out. The split is about the cheapest
-spelling, not about what is expressible.
+spells anything the theorem allows, at six calls and two temporaries where one
+`d3cross` would do — the expansion above is `d3cross` written out by hand. The
+split is about the cheapest spelling, not about what is expressible.
 
 ---
 
@@ -206,19 +231,22 @@ void d3dotxy_dotxz    (const d3v *x, const d3v *y, const d3v *z,
                        d1v *r1, d1v *r2);
 
 /* Layer 0 — flat CBLAS */
-void d1scal (blaslong n, T a, const T *x, blaslong incx, T *z, blaslong incz);
-void d1axpy (blaslong n, T a, const T *x, blaslong incx, T *y, blaslong incy);
-void d1axpby(blaslong n, T a, const T *x, blaslong incx,
-             T b, const T *y, blaslong incy, T *z, blaslong incz);
-void d1had  (blaslong n, const T *x, blaslong incx,
-             const T *y, blaslong incy, T *z, blaslong incz);
-void d1sqr  (blaslong n, const T *x, blaslong incx, T *z, blaslong incz);
-void d1sqrt (blaslong n, const T *x, blaslong incx, T *z, blaslong incz);
+void d1scal (blasint n, T a, const T *x, blasint incx, T *z, blasint incz);
+void d1axpy (blasint n, T a, const T *x, blasint incx, T *y, blasint incy);
+void d1axpby(blasint n, T a, const T *x, blasint incx,
+             T b, const T *y, blasint incy, T *z, blasint incz);
+void d1had  (blasint n, const T *x, blasint incx,
+             const T *y, blasint incy, T *z, blasint incz);
+void d1sqr  (blasint n, const T *x, blasint incx, T *z, blasint incz);
+void d1sqrt (blasint n, const T *x, blasint incx, T *z, blasint incz);
 
 /* error status — the mechanism CBLAS defines */
 void d3_set_error_status(int status);   /* V3BLAS_OK, V3BLAS_PARAM */
 int  d3_get_error_status(void);
 ```
+
+`V3BLAS_OK` and `V3BLAS_PARAM` are integer constants the header defines,
+alongside the `d3v`/`d1v` types and every prototype above.
 
 - Handles pass by pointer, so appending a field is not an ABI break. Inputs are
   `const`.
@@ -245,7 +273,11 @@ Both layers take `inc`, and both follow BLAS exactly.
 | `== 0` | **broadcast** — read one element, apply to all `n` | rejected: all three components would name one element, which is not a vector |
 
 Broadcast is how a field is scaled by a single value without a new operand
-class: `d1axpby(n, 1/mu0, &vx, &vinc, 0, &mu0_0, 0, &fx, &finc)`.
+class. `F *= 1/μ₀` where `1/μ₀` lives in one element:
+
+```c
+d1axpby(F.n, 1.0, F.x, F.cinc, 0, &inv_mu0, 0, F.x, F.cinc);
+```
 
 ### Validation
 
@@ -278,21 +310,21 @@ handle are the caller's data race, as in stock BLAS.
 | field appended to `d3v`/`d1v` | minor (safe only because handles pass by pointer) |
 | change to an existing symbol's signature or semantics | major |
 | change to a handle's field order, width, or the meaning of `cinc` | major |
-| precision added (`c`, `z`) | major — it changes what existing symbols mean |
+| precision added beyond `s d c z` | major — it changes what existing symbols mean |
 
 ### Operator headers (optional C++ API)
 
 A second API where every convenience the C API refuses goes:
 
 ```cpp
-v3<double> F = cross(curlB, B) * (1/mu0);
-v1<double> h = dot(B, curlB);
+d3v<double> F = cross(curlB, B) * (1/mu0);
+d1v<double> h = dot(B, curlB);
 ```
 
-It owes the C API nothing backwards: `d3v` in place, RAII, temporaries,
-`norm2`/`abs2`/`conj_dot`, throw or `status` instead of a global. Every C-side
-restriction must be something C cannot express or a real ambiguity this layer
-cannot paper over.
+It owes the C API nothing backwards: the same `d3v`/`d1v` handles, RAII,
+temporaries, `norm2`/`abs2`/`conj_dot`, throw or `status` instead of a global.
+Every C-side restriction must be something C cannot express or a real ambiguity
+this layer cannot paper over.
 
 ---
 
@@ -345,9 +377,10 @@ cannot paper over.
 
 ## Acceptance criteria
 
-1. `nm -D` shows exactly **120 symbols** — 76 kernels, 24 Layer-1 constructors,
-   12 Layer-0 constructors, 8 status — plus any internal `_k` symbols, and no
-   v3blas symbol equals a stock BLAS symbol.
+1. `nm -D` shows exactly **120 symbols** — the 76 kernels of §Kernel set plus
+   24 Layer-1 constructors, 12 Layer-0 constructors and 8 status functions —
+   plus any internal `_k` symbols, and no v3blas symbol equals a stock BLAS
+   symbol.
 2. A C test links against the build under test and nothing beyond `-lm` —
    addressed by path or `rpath`, never a bare `-lblas`. The test source stays
    BLAS-ABI-only.

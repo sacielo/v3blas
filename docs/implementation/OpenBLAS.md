@@ -50,7 +50,7 @@ That is exactly why the README defines ours.
 | `kernel/generic/ew.c` | Layer-0 real bodies → `s1_*`, `d1_*` |
 | `kernel/generic/zew.c` | Layer-0 complex bodies → `c1_*`, `z1_*` |
 | `interface/v3.c`, `interface/ew.c` | public entries, both `NAME` and `CNAME` |
-| `include/v3blas.h` | handle typedefs, constructors, status, user prototypes |
+| `include/v3blas.h` | handle typedefs `s3v`…`z1v`, constructors, `V3BLAS_OK`/`V3BLAS_PARAM`, user prototypes |
 
 Appended, not rewritten: `_k` prototypes in `common_level1.h`; registration in
 `kernel/Makefile.L1` (legacy build) **and** `cmake/kernel.cmake`
@@ -82,6 +82,11 @@ Flat, `cinc` left derived inside the body (it is only ever `3 * inc`), pointers
 only — **a kernel body never sees a handle**. The `_k` name is kept because it
 is how OpenBLAS organises every other kernel, and it is what `TARGET`
 overrides and `KERNEL.generic` registration point at.
+
+`BLASLONG` here against `int64_t`/`blasint` in the README is deliberate: inside
+the tree `BLASLONG` is the native index type and these are internal symbols,
+not API. A Layer-0 entry receives `blasint` and widens on the way in; Layer 1
+receives `int64_t`, which `BLASLONG` already is on every 64-bit target.
 
 ## Entry structure
 
@@ -126,7 +131,8 @@ the rest of the library already consults.
 - No changes to existing routines; only *added* files plus appended lines
   (`common_level1.h`, `kernel/Makefile.L1`, `cmake/kernel.cmake`). A clean,
   mergeable, append-only patch.
-- No C++.
+- No C++. The operator headers in README §Operator headers are a separate
+  optional layer and are not part of this patch.
 
 ## Build & test loop
 
@@ -135,8 +141,9 @@ the rest of the library already consults.
    upstream, and is not installed here — the CMake registration still ships in
    the patch, but the Makefile path is the one that gets tested.
 3. `nm -D lib*.so` → exactly the 120 symbols of README acceptance criterion 1.
-4. `tests/test_v3.c` — pure C, links `-lblas -lm` only, run at every thread
-   count the library offers.
+4. `tests/test_v3.c` — pure C, links the build under test by path or `rpath`
+   plus `-lm`, never a bare `-lblas`, and runs at every thread count the library
+   offers.
 5. `git -C subm/openblas format-patch` → `patch/0001-*.patch`. Regenerated from
    the branch, never hand-edited.
 
