@@ -1,0 +1,1776 @@
+diff --git a/interface/Makefile b/interface/Makefile
+index 2b6b60c14..9096b3ea2 100644
+--- a/interface/Makefile
++++ b/interface/Makefile
+@@ -2601,3 +2601,169 @@ cgemm_batch_strided.$(SUFFIX) cgemm_batch_strided.$(PSUFFIX) : gemm_batch_stride
+ 
+ zgemm_batch_strided.$(SUFFIX) zgemm_batch_strided.$(PSUFFIX) : gemm_batch_strided.c ../param.h
+ 	$(CC) -c $(CFLAGS) -UCBLAS $< -o $(@F)
++
++### v3blas interface rules
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_S -c v3.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_D -c v3.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_C -c v3.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_Z -c v3.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_S -c ew.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_D -c ew.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_C -c ew.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_Z -c ew.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_S -c v3.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_D -c v3.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_C -c v3.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_Z -c v3.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_S -c ew.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_D -c ew.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_C -c ew.c -o $@
++
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_Z -c ew.c -o $@
++
++s3create.$(SUFFIX) s3destroy.$(SUFFIX) s3wrap.$(SUFFIX) s3wrap_component.$(SUFFIX) s3component.$(SUFFIX) s3pitch.$(SUFFIX) s3set_error_status.$(SUFFIX) s3get_error_status.$(SUFFIX): v3_ctor.c
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_S -c v3_ctor.c -o $@
++
++d3create.$(SUFFIX) d3destroy.$(SUFFIX) d3wrap.$(SUFFIX) d3wrap_component.$(SUFFIX) d3component.$(SUFFIX) d3pitch.$(SUFFIX) d3set_error_status.$(SUFFIX) d3get_error_status.$(SUFFIX): v3_ctor.c
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_D -c v3_ctor.c -o $@
++
++c3create.$(SUFFIX) c3destroy.$(SUFFIX) c3wrap.$(SUFFIX) c3wrap_component.$(SUFFIX) c3component.$(SUFFIX) c3pitch.$(SUFFIX) c3set_error_status.$(SUFFIX) c3get_error_status.$(SUFFIX): v3_ctor.c
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_C -c v3_ctor.c -o $@
++
++z3create.$(SUFFIX) z3destroy.$(SUFFIX) z3wrap.$(SUFFIX) z3wrap_component.$(SUFFIX) z3component.$(SUFFIX) z3pitch.$(SUFFIX) z3set_error_status.$(SUFFIX) z3get_error_status.$(SUFFIX): v3_ctor.c
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_Z -c v3_ctor.c -o $@
++
++s1create.$(SUFFIX) s1destroy.$(SUFFIX) s1wrap.$(SUFFIX) s1set_error_status.$(SUFFIX) s1get_error_status.$(SUFFIX): ew_ctor.c
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_S -c ew_ctor.c -o $@
++
++d1create.$(SUFFIX) d1destroy.$(SUFFIX) d1wrap.$(SUFFIX) d1set_error_status.$(SUFFIX) d1get_error_status.$(SUFFIX): ew_ctor.c
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_D -c ew_ctor.c -o $@
++
++c1create.$(SUFFIX) c1destroy.$(SUFFIX) c1wrap.$(SUFFIX) c1set_error_status.$(SUFFIX) c1get_error_status.$(SUFFIX): ew_ctor.c
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_C -c ew_ctor.c -o $@
++
++z1create.$(SUFFIX) z1destroy.$(SUFFIX) z1wrap.$(SUFFIX) z1set_error_status.$(SUFFIX) z1get_error_status.$(SUFFIX): ew_ctor.c
++	$(CC) $(CFLAGS) -DBUILD_COMPLEX -DV3_Z -c ew_ctor.c -o $@
++
++# v3blas interface objects
++# Layer 1
++v3_s.$(SUFFIX): v3.c
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++v3_d.$(SUFFIX): v3.c
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++v3_c.$(SUFFIX): v3.c
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++v3_z.$(SUFFIX): v3.c
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++ew_s.$(SUFFIX): ew.c
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++ew_d.$(SUFFIX): ew.c
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++ew_c.$(SUFFIX): ew.c
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++ew_z.$(SUFFIX): ew.c
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++s3scal.$(SUFFIX): v3_s.$(SUFFIX)
++	$(CC) $(CFLAGS) -c -o $@ -DV3_S -UCOMPLEX -UDOUBLE -x c /dev/null 2>/dev/null || true
++s3axpy.$(SUFFIX): v3_s.$(SUFFIX)
++s3axpby.$(SUFFIX): v3_s.$(SUFFIX)
++s3had.$(SUFFIX): v3_s.$(SUFFIX)
++s3cross.$(SUFFIX): v3_s.$(SUFFIX)
++s3crossscal.$(SUFFIX): v3_s.$(SUFFIX)
++s3dot.$(SUFFIX): v3_s.$(SUFFIX)
++s3sqr.$(SUFFIX): v3_s.$(SUFFIX)
++s3crossdot.$(SUFFIX): v3_s.$(SUFFIX)
++s3crosssqr.$(SUFFIX): v3_s.$(SUFFIX)
++s3crossxy_crossxz.$(SUFFIX): v3_s.$(SUFFIX)
++s3crossxy_dotxz.$(SUFFIX): v3_s.$(SUFFIX)
++s3dotxy_dotxz.$(SUFFIX): v3_s.$(SUFFIX)
++s1scal.$(SUFFIX): ew_s.$(SUFFIX)
++s1axpy.$(SUFFIX): ew_s.$(SUFFIX)
++s1axpby.$(SUFFIX): ew_s.$(SUFFIX)
++s1had.$(SUFFIX): ew_s.$(SUFFIX)
++s1sqr.$(SUFFIX): ew_s.$(SUFFIX)
++s1sqrt.$(SUFFIX): ew_s.$(SUFFIX)
++
++d3scal.$(SUFFIX): v3_d.$(SUFFIX)
++d3axpy.$(SUFFIX): v3_d.$(SUFFIX)
++d3axpby.$(SUFFIX): v3_d.$(SUFFIX)
++d3had.$(SUFFIX): v3_d.$(SUFFIX)
++d3cross.$(SUFFIX): v3_d.$(SUFFIX)
++d3crossscal.$(SUFFIX): v3_d.$(SUFFIX)
++d3dot.$(SUFFIX): v3_d.$(SUFFIX)
++d3sqr.$(SUFFIX): v3_d.$(SUFFIX)
++d3crossdot.$(SUFFIX): v3_d.$(SUFFIX)
++d3crosssqr.$(SUFFIX): v3_d.$(SUFFIX)
++d3crossxy_crossxz.$(SUFFIX): v3_d.$(SUFFIX)
++d3crossxy_dotxz.$(SUFFIX): v3_d.$(SUFFIX)
++d3dotxy_dotxz.$(SUFFIX): v3_d.$(SUFFIX)
++d1scal.$(SUFFIX): ew_d.$(SUFFIX)
++d1axpy.$(SUFFIX): ew_d.$(SUFFIX)
++d1axpby.$(SUFFIX): ew_d.$(SUFFIX)
++d1had.$(SUFFIX): ew_d.$(SUFFIX)
++d1sqr.$(SUFFIX): ew_d.$(SUFFIX)
++d1sqrt.$(SUFFIX): ew_d.$(SUFFIX)
++
++c3scal.$(SUFFIX): v3_c.$(SUFFIX)
++c3axpy.$(SUFFIX): v3_c.$(SUFFIX)
++c3axpby.$(SUFFIX): v3_c.$(SUFFIX)
++c3had.$(SUFFIX): v3_c.$(SUFFIX)
++c3cross.$(SUFFIX): v3_c.$(SUFFIX)
++c3crossscal.$(SUFFIX): v3_c.$(SUFFIX)
++c3dot.$(SUFFIX): v3_c.$(SUFFIX)
++c3sqr.$(SUFFIX): v3_c.$(SUFFIX)
++c3crossdot.$(SUFFIX): v3_c.$(SUFFIX)
++c3crosssqr.$(SUFFIX): v3_c.$(SUFFIX)
++c3crossxy_crossxz.$(SUFFIX): v3_c.$(SUFFIX)
++c3crossxy_dotxz.$(SUFFIX): v3_c.$(SUFFIX)
++c3dotxy_dotxz.$(SUFFIX): v3_c.$(SUFFIX)
++c1scal.$(SUFFIX): ew_c.$(SUFFIX)
++c1axpy.$(SUFFIX): ew_c.$(SUFFIX)
++c1axpby.$(SUFFIX): ew_c.$(SUFFIX)
++c1had.$(SUFFIX): ew_c.$(SUFFIX)
++c1sqr.$(SUFFIX): ew_c.$(SUFFIX)
++c1sqrt.$(SUFFIX): ew_c.$(SUFFIX)
++
++z3scal.$(SUFFIX): v3_z.$(SUFFIX)
++z3axpy.$(SUFFIX): v3_z.$(SUFFIX)
++z3axpby.$(SUFFIX): v3_z.$(SUFFIX)
++z3had.$(SUFFIX): v3_z.$(SUFFIX)
++z3cross.$(SUFFIX): v3_z.$(SUFFIX)
++z3crossscal.$(SUFFIX): v3_z.$(SUFFIX)
++z3dot.$(SUFFIX): v3_z.$(SUFFIX)
++z3sqr.$(SUFFIX): v3_z.$(SUFFIX)
++z3crossdot.$(SUFFIX): v3_z.$(SUFFIX)
++z3crosssqr.$(SUFFIX): v3_z.$(SUFFIX)
++z3crossxy_crossxz.$(SUFFIX): v3_z.$(SUFFIX)
++z3crossxy_dotxz.$(SUFFIX): z3.$(SUFFIX) # typo guard
++z3dotxy_dotxz.$(SUFFIX): v3_z.$(SUFFIX)
++z1scal.$(SUFFIX): ew_z.$(SUFFIX)
++z1axpy.$(SUFFIX): ew_z.$(SUFFIX)
++z1axpby.$(SUFFIX): ew_z.$(SUFFIX)
++z1had.$(SUFFIX): ew_z.$(SUFFIX)
++z1sqr.$(SUFFIX): ew_z.$(SUFFIX)
++z1sqrt.$(SUFFIX): ew_z.$(SUFFIX)
++
++z3crossxy_dotxz.$(SUFFIX): v3_z.$(SUFFIX)
+\ No newline at end of file
+diff --git a/interface/ew.c b/interface/ew.c
+new file mode 100644
+index 000000000..9f0fcb275
+--- /dev/null
++++ b/interface/ew.c
+@@ -0,0 +1,100 @@
++/*****************************************************************************
++Copyright (c) 2026, v3blas contributors.  Layer 0 public entries.
++
++Compiled once per precision with -DV3_S, -DV3_D, -DV3_C or -DV3_Z.
++*****************************************************************************/
++
++#include <stdlib.h>
++#include "v3blas.h"
++
++#if defined(V3_S)
++#define P1(x) s1##x
++#define P3(x) s3##x
++typedef float V3F;
++#elif defined(V3_D)
++#define P1(x) d1##x
++#define P3(x) d3##x
++typedef double V3F;
++#elif defined(V3_C)
++#define P1(x) c1##x
++#define P3(x) c3##x
++typedef float V3F;
++#else
++#define P1(x) z1##x
++#define P3(x) z3##x
++typedef double V3F;
++#endif
++
++typedef P1(v) P1V;
++typedef P3(v) P3V;
++
++int P1(scal_k)(int64_t n, V3F a, V3F ai, const V3F *x, int64_t incx,
++               V3F *z, int64_t incz);
++int P1(axpy_k)(int64_t n, V3F a, V3F ai, const V3F *x, int64_t incx,
++               V3F *y, int64_t incy);
++int P1(axpby_k)(int64_t n, V3F a, V3F ai, const V3F *x, int64_t incx,
++                V3F b, V3F bi, const V3F *y, int64_t incy,
++                V3F *z, int64_t incz);
++int P1(had_k)(int64_t n, const V3F *x, int64_t incx, const V3F *y, int64_t incy,
++              V3F *z, int64_t incz);
++int P1(sqr_k)(int64_t n, const V3F *x, int64_t incx, V3F *z, int64_t incz);
++int P1(sqrt_k)(int64_t n, const V3F *x, int64_t incx, V3F *z, int64_t incz);
++
++#define ST(s) P3(set_error_status)(s)
++#define PARAM ST(V3BLAS_PARAM)
++
++#define E1(name, decl, body)					\
++void P1(name) decl						\
++{								\
++	blasint n = n_arg;					\
++	if (n == 0) return;					\
++	if (n < 0) { PARAM; return; }				\
++	if (!x) { PARAM; return; }				\
++	body;							\
++}
++
++#if defined(V3_S) || defined(V3_D)
++
++E1(scal, (blasint n_arg, V3F a, const V3F *x, blasint incx,
++          V3F *z, blasint incz),
++    P1(scal_k)((int64_t)n, a, 0., x, (int64_t)incx, z, (int64_t)incz);)
++
++E1(axpy, (blasint n_arg, V3F a, const V3F *x, blasint incx,
++          V3F *y, blasint incy),
++    P1(axpy_k)((int64_t)n, a, 0., x, (int64_t)incx, y, (int64_t)incy);)
++
++E1(axpby, (blasint n_arg, V3F a, const V3F *x, blasint incx,
++           V3F b, const V3F *y, blasint incy,
++           V3F *z, blasint incz),
++    P1(axpby_k)((int64_t)n, a, 0., x, (int64_t)incx, b, 0., y, (int64_t)incy,
++                z, (int64_t)incz);)
++
++#else
++
++E1(scal, (blasint n_arg, V3F ar, V3F ai, const V3F *x, blasint incx,
++          V3F *z, blasint incz),
++    P1(scal_k)((int64_t)n, ar, ai, x, (int64_t)incx, z, (int64_t)incz);)
++
++E1(axpy, (blasint n_arg, V3F ar, V3F ai, const V3F *x, blasint incx,
++          V3F *y, blasint incy),
++    P1(axpy_k)((int64_t)n, ar, ai, x, (int64_t)incx, y, (int64_t)incy);)
++
++E1(axpby, (blasint n_arg, V3F ar, V3F ai, const V3F *x, blasint incx,
++           V3F br, V3F bi, const V3F *y, blasint incy,
++           V3F *z, blasint incz),
++    P1(axpby_k)((int64_t)n, ar, ai, x, (int64_t)incx, br, bi, y, (int64_t)incy,
++                z, (int64_t)incz);)
++
++#endif
++
++E1(had, (blasint n_arg, const V3F *x, blasint incx, const V3F *y, blasint incy,
++         V3F *z, blasint incz),
++    P1(had_k)((int64_t)n, x, (int64_t)incx, y, (int64_t)incy, z, (int64_t)incz);)
++
++E1(sqr, (blasint n_arg, const V3F *x, blasint incx, V3F *z, blasint incz),
++    P1(sqr_k)((int64_t)n, x, (int64_t)incx, z, (int64_t)incz);)
++
++E1(sqrt, (blasint n_arg, const V3F *x, blasint incx, V3F *z, blasint incz),
++    P1(sqrt_k)((int64_t)n, x, (int64_t)incx, z, (int64_t)incz);)
++
++
+diff --git a/interface/ew_ctor.c b/interface/ew_ctor.c
+new file mode 100644
+index 000000000..93a8aa4cf
+--- /dev/null
++++ b/interface/ew_ctor.c
+@@ -0,0 +1,57 @@
++/*****************************************************************************
++Copyright (c) 2026, v3blas contributors.  Layer 0 constructors and status.
++*****************************************************************************/
++
++#include <stdlib.h>
++#include "v3blas.h"
++
++#if defined(V3_S)
++#define P1(x) s1##x
++#define P3(x) s3##x
++typedef float V3F;
++#elif defined(V3_D)
++#define P1(x) d1##x
++#define P3(x) d3##x
++typedef double V3F;
++#elif defined(V3_C)
++#define P1(x) c1##x
++#define P3(x) c3##x
++typedef float V3F;
++#else
++#define P1(x) z1##x
++#define P3(x) z3##x
++typedef double V3F;
++#endif
++
++typedef P1(v) P1V;
++
++static _Thread_local int v3_status = V3BLAS_OK;
++void P3(set_error_status)(int status) { v3_status = status; }
++int  P3(get_error_status)(void)       { return v3_status; }
++
++P1V *P1(create)(blasint n)
++{
++	P1V *v;
++	V3F *base;
++	if (n < 0) return NULL;
++	base = (V3F *)calloc(n > 0 ? n : 1, sizeof(V3F));
++	if (!base) return NULL;
++	v = (P1V *)malloc(sizeof(P1V));
++	if (!v) { free(base); return NULL; }
++	v->p = base; v->n = n; v->inc = 1;
++	return v;
++}
++
++P1V *P1(wrap)(P1V *out, V3F *base, blasint n, blasint inc)
++{
++	if (!out || !base || n < 0) return NULL;
++	out->p = base; out->n = n; out->inc = inc;
++	return out;
++}
++
++void P1(destroy)(P1V *v)
++{
++	if (!v) return;
++	free(v->p);
++	free(v);
++}
+diff --git a/interface/v3.c b/interface/v3.c
+new file mode 100644
+index 000000000..91867dec8
+--- /dev/null
++++ b/interface/v3.c
+@@ -0,0 +1,208 @@
++/*****************************************************************************
++Copyright (c) 2026, v3blas contributors.  Layer 1 public entries and the
++handle constructors, for one precision.  Compiled once per precision with
++-DV3_S, -DV3_D, -DV3_C or -DV3_Z.
++
++An entry does the three things a body must not: validate, normalise a negative
++stride onto the base pointer, and hand the body a contiguous element range.
++The body is then a plain loop over one chunk.
++
++Every rule here comes from the v3blas spec: n == 0 is a quick return that
++changes nothing, validation completes before any store, and the status is set
++rather than returned, per precision and per thread.
++*****************************************************************************/
++
++#include <stdlib.h>
++#include "v3blas.h"
++
++/* ---- per-precision names and types ---- */
++
++#if defined(V3_S)
++#define P3(x) s3##x
++#define P1(x) s1##x
++typedef float V3F;
++#define SCAL_DECL(T)   T a
++#define SCAL_ARG        a
++#define SCALB_DECL(T)  T b
++#define SCALB_ARG       b
++#define KA(V3F)         V3F
++#elif defined(V3_D)
++#define P3(x) d3##x
++#define P1(x) d1##x
++typedef double V3F;
++#define SCAL_DECL(T)   T a
++#define SCAL_ARG        a
++#define SCALB_DECL(T)  T b
++#define SCALB_ARG       b
++#define KA(V3F)         V3F
++#elif defined(V3_C)
++#define P3(x) c3##x
++#define P1(x) c1##x
++typedef float V3F;
++#define SCAL_DECL(T)   T ar, T ai
++#define SCAL_ARG        ar, ai
++#define SCALB_DECL(T)  T br, T bi
++#define SCALB_ARG       br, bi
++#define KA(V3F)         V3F, V3F
++#else
++#define P3(x) z3##x
++#define P1(x) z1##x
++typedef double V3F;
++#define SCAL_DECL(T)   T ar, T ai
++#define SCAL_ARG        ar, ai
++#define SCALB_DECL(T)  T br, T bi
++#define SCALB_ARG       br, bi
++#define KA(V3F)         V3F, V3F
++#endif
++
++typedef P3(v) P3V;
++typedef P1(v) P1V;
++
++/* ---- error status: per precision, per thread ---- */
++
++static _Thread_local int v3_status = V3BLAS_OK;
++
++void P3(set_error_status)(int status) { v3_status = status; }
++int  P3(get_error_status)(void)       { return v3_status; }
++
++/* ---- internal bodies (declared here, not in common_level1.h: those
++        prototypes are for OpenBLAS's own kernels and none of our names or
++        types belong in that file) ---- */
++
++int P3(cross_k)    (int64_t, const V3F *, const V3F *, V3F *, int64_t, int64_t);
++int P3(crossscal_k)(int64_t, const V3F *, const V3F *, KA(V3F), V3F *, int64_t, int64_t);
++int P3(crossdot_k) (int64_t, const V3F *, const V3F *, const V3F *, V3F *,
++                    int64_t, int64_t);
++int P3(crosssqr_k) (int64_t, const V3F *, const V3F *, V3F *, int64_t, int64_t);
++int P3(dot_k)      (int64_t, const V3F *, const V3F *, V3F *, int64_t, int64_t);
++int P3(sqr_k)      (int64_t, const V3F *, V3F *, int64_t, int64_t);
++int P3(had_k)      (int64_t, const V3F *, const V3F *, V3F *, int64_t, int64_t);
++int P3(scal_k)     (int64_t, const V3F *, KA(V3F), V3F *, int64_t, int64_t);
++int P3(axpy_k)     (int64_t, const V3F *, KA(V3F), const V3F *, V3F *, int64_t, int64_t);
++int P3(axpby_k)    (int64_t, const V3F *, KA(V3F), const V3F *, KA(V3F), V3F *, int64_t, int64_t);
++int P3(crossxy_crossxz_k)(int64_t, const V3F *, const V3F *, const V3F *,
++                          V3F *, V3F *, int64_t, int64_t);
++int P3(crossxy_dotxz_k)  (int64_t, const V3F *, const V3F *, const V3F *,
++                          V3F *, V3F *, int64_t, int64_t);
++int P3(dotxy_dotxz_k)    (int64_t, const V3F *, const V3F *, const V3F *,
++                          V3F *, V3F *, int64_t, int64_t);
++
++/* ---- validation ---- */
++
++#define ST(s)   P3(set_error_status)(s)
++#define PARAM   ST(V3BLAS_PARAM)
++
++/* Validate the 3-vector operands and the common n, inc, cinc.  A NULL handle
++   has no n to inspect, so the NULL test necessarily runs first.
++   0 = go, 1 = quick return (n == 0), -1 = V3BLAS_PARAM. */
++static int v3pre(int nh, const P3V *const *h, int64_t *pn,
++                 int64_t *pinc, int64_t *pcinc)
++{
++	int i;
++	int64_t n, inc, cinc;
++
++	for (i = 0; i < nh; i++)
++		if (!h[i] || !h[i]->x) return -1;
++
++	n = h[0]->n;
++	if (n == 0) return 1;
++	inc = h[0]->inc;
++	cinc = h[0]->cinc;
++
++	if (n < 0 || inc == 0 || cinc != 3 * inc) return -1;
++
++	for (i = 1; i < nh; i++)
++		if (h[i]->n != n || h[i]->inc != inc) return -1;
++
++	*pn = n; *pinc = inc; *pcinc = cinc;
++	return 0;
++}
++
++/* A scalar-array handle has no components, so it has no cinc: it must agree
++   on n and inc and be non-NULL.  Called after v3pre has ruled out n == 0. */
++static int chk1(const P1V *r, int64_t n, int64_t inc)
++{
++	return (!r || !r->p || r->n != n || r->inc != inc) ? -1 : 0;
++}
++
++/* Every entry is this: gather handles, validate, normalise a negative stride
++   onto the base pointer, call the body. */
++/* E3(name, decl, body, SCALARS_NULL, V3ARGS...) */
++#define E3(name, decl, body, SCALARS_NULL, ...)			\
++void P3(name) decl						\
++{								\
++	const P3V *h[16];					\
++	const P1V *sc[16];					\
++	int nh = 0, ns = 0, i;					\
++	do { const P1V *sl[] = { SCALARS_NULL };		\
++	     for (i = 0; i < (int)(sizeof sl/sizeof sl[0]); i++) { if (sl[i]) sc[ns++] = sl[i]; } } while (0);\
++	do { const P3V *vl[] = { __VA_ARGS__ };			\
++	     for (i = 0; i < (int)(sizeof vl/sizeof vl[0]); i++) { if (vl[i]) h[nh++] = vl[i]; } } while (0);\
++	int64_t n, inc, cinc, off = 0;				\
++	int rc = v3pre(nh, h, &n, &inc, &cinc);			\
++	if (rc) { if (rc < 0) PARAM; return; }			\
++	for (i = 0; i < ns; i++) if (chk1(sc[i], n, inc) < 0) { PARAM; return; }\
++	if (inc < 0) { off = (n - 1) * -inc; inc = -inc; }	\
++	body;							\
++}
++
++/* ---- Layer 1 entries ---- */
++
++E3(scal, (const P3V *x, SCAL_DECL(V3F), P3V *z),
++   P3(scal_k)(n, x->x + off, SCAL_ARG, z->x + off, inc, cinc);,
++   0, x, z)
++
++E3(axpy, (const P3V *x, SCAL_DECL(V3F), P3V *y),
++   P3(axpy_k)(n, x->x + off, SCAL_ARG, y->x + off, y->x + off, inc, cinc);,
++   0, x, y)
++
++E3(axpby, (const P3V *x, SCAL_DECL(V3F), const P3V *y, SCALB_DECL(V3F), P3V *z),
++   P3(axpby_k)(n, x->x + off, SCAL_ARG, y->x + off, SCALB_ARG,
++               z->x + off, inc, cinc);,
++   0, x, y, z)
++
++E3(had, (const P3V *x, const P3V *y, P3V *z),
++   P3(had_k)(n, x->x + off, y->x + off, z->x + off, inc, cinc);,
++   0, x, y, z)
++
++E3(cross, (const P3V *x, const P3V *y, P3V *c),
++   P3(cross_k)(n, x->x + off, y->x + off, c->x + off, inc, cinc);,
++   0, x, y, c)
++
++E3(crossscal, (const P3V *x, const P3V *y, SCAL_DECL(V3F), P3V *c),
++   P3(crossscal_k)(n, x->x + off, y->x + off, SCAL_ARG, c->x + off,
++                   inc, cinc);,
++   0, x, y, c)
++
++E3(dot, (const P3V *x, const P3V *y, P1V *r),
++   P3(dot_k)(n, x->x + off, y->x + off, r->p + off, inc, cinc);,
++   r, x, y)
++
++E3(sqr, (const P3V *x, P3V *z),
++   P3(sqr_k)(n, x->x + off, z->x + off, inc, cinc);,
++   0, x, z)
++
++E3(crossdot, (const P3V *x, const P3V *y, const P3V *z, P1V *r),
++   P3(crossdot_k)(n, x->x + off, y->x + off, z->x + off, r->p + off,
++                  inc, cinc);,
++   r, x, y, z)
++
++E3(crosssqr, (const P3V *x, const P3V *y, P1V *r),
++   P3(crosssqr_k)(n, x->x + off, y->x + off, r->p + off, inc, cinc);,
++   r, x, y)
++
++E3(crossxy_crossxz,
++   (const P3V *x, const P3V *y, const P3V *z, P3V *c1, P3V *c2),
++   P3(crossxy_crossxz_k)(n, x->x + off, y->x + off, z->x + off,
++                         c1->x + off, c2->x + off, inc, cinc);,
++   0, x, y, z, c1, c2)
++
++E3(crossxy_dotxz, (const P3V *x, const P3V *y, const P3V *z, P3V *c, P1V *r),
++   P3(crossxy_dotxz_k)(n, x->x + off, y->x + off, z->x + off,
++                       c->x + off, r->p + off, inc, cinc);,
++   r, x, y, z, c)
++
++E3(dotxy_dotxz, (const P3V *x, const P3V *y, const P3V *z, P1V *r1, P1V *r2),
++   P3(dotxy_dotxz_k)(n, x->x + off, y->x + off, z->x + off,
++                     r1->p + off, r2->p + off, inc, cinc);,
++   0, x, y, z)
+diff --git a/interface/v3_ctor.c b/interface/v3_ctor.c
+new file mode 100644
+index 000000000..1a0e94587
+--- /dev/null
++++ b/interface/v3_ctor.c
+@@ -0,0 +1,82 @@
++/*****************************************************************************
++Copyright (c) 2026, v3blas contributors.  Layer 1 constructors and status.
++*****************************************************************************/
++
++#include <stdlib.h>
++#include "v3blas.h"
++
++#if defined(V3_S)
++#define P3(x) s3##x
++#define P1(x) s1##x
++typedef float V3F;
++#elif defined(V3_D)
++#define P3(x) d3##x
++#define P1(x) d1##x
++typedef double V3F;
++#elif defined(V3_C)
++#define P3(x) c3##x
++#define P1(x) c1##x
++typedef float V3F;
++#else
++#define P3(x) z3##x
++#define P1(x) z1##x
++typedef double V3F;
++#endif
++
++typedef P3(v) P3V;
++typedef P1(v) P1V;
++
++static _Thread_local int v3_status = V3BLAS_OK;
++void P3(set_error_status)(int status) { v3_status = status; }
++int  P3(get_error_status)(void)       { return v3_status; }
++
++int64_t P3(pitch)(int64_t n) { return ((3 * n + 7) / 8) * 8; }
++
++P3V *P3(create)(int64_t n)
++{
++	P3V *v;
++	V3F *base;
++	if (n < 0) return NULL;
++	base = (V3F *)calloc(P3(pitch)(n) ? P3(pitch)(n) : 1, sizeof(V3F));
++	if (!base) return NULL;
++	v = (P3V *)malloc(sizeof(P3V));
++	if (!v) { free(base); return NULL; }
++	v->x = base; v->y = NULL; v->z = NULL;
++	v->n = n; v->inc = 1; v->cinc = 3;
++	return v;
++}
++
++P3V *P3(wrap)(P3V *out, V3F *base, int64_t n, int64_t inc)
++{
++	if (!out || !base || n < 0 || inc == 0) return NULL;
++	out->x = base; out->y = NULL; out->z = NULL;
++	out->n = n; out->inc = inc; out->cinc = 3 * inc;
++	return out;
++}
++
++P3V *P3(wrap_component)(P3V *out, const P3V *v, int k)
++{
++	if (!out || !v || !v->x) return NULL;
++	if (k < 0) { *out = *v; return out; }
++	if (k > 2) return NULL;
++	out->x = v->x + k * v->cinc;
++	out->y = NULL; out->z = NULL;
++	out->n = v->n; out->inc = v->inc; out->cinc = v->cinc;
++	return out;
++}
++
++P1V P3(component)(const P3V *v, int k)
++{
++	P1V r;
++	if (!v || !v->x || k < 0 || k > 2) { r.p = NULL; r.n = 0; r.inc = 0; return r; }
++	r.p = v->x + k * v->cinc;
++	r.n = v->n; r.inc = v->inc;
++	return r;
++}
++
++void P3(destroy)(P3V *v)
++{
++	if (!v) return;
++	free(v->x);
++	free(v);
++}
+diff --git a/kernel/Makefile b/kernel/Makefile
+index 9cab79c86..4ed052d81 100644
+--- a/kernel/Makefile
++++ b/kernel/Makefile
+@@ -229,3 +229,13 @@ clean ::
+ #endif
+ 
+ include $(TOPDIR)/Makefile.tail
++
++# v3blas kernel objects
++SBLASOBJS += s3scal_k$(TSUFFIX).$(SUFFIX) s3axpy_k$(TSUFFIX).$(SUFFIX) s3axpby_k$(TSUFFIX).$(SUFFIX) s3had_k$(TSUFFIX).$(SUFFIX) s3cross_k$(TSUFFIX).$(SUFFIX) s3crossscal_k$(TSUFFIX).$(SUFFIX) s3dot_k$(TSUFFIX).$(SUFFIX) s3sqr_k$(TSUFFIX).$(SUFFIX) s3crossdot_k$(TSUFFIX).$(SUFFIX) s3crosssqr_k$(TSUFFIX).$(SUFFIX) s3crossxy_crossxz_k$(TSUFFIX).$(SUFFIX) s3crossxy_dotxz_k$(TSUFFIX).$(SUFFIX) s3dotxy_dotxz_k$(TSUFFIX).$(SUFFIX)
++DBLASOBJS += d3scal_k$(TSUFFIX).$(SUFFIX) d3axpy_k$(TSUFFIX).$(SUFFIX) d3axpby_k$(TSUFFIX).$(SUFFIX) d3had_k$(TSUFFIX).$(SUFFIX) d3cross_k$(TSUFFIX).$(SUFFIX) d3crossscal_k$(TSUFFIX).$(SUFFIX) d3dot_k$(TSUFFIX).$(SUFFIX) d3sqr_k$(TSUFFIX).$(SUFFIX) d3crossdot_k$(TSUFFIX).$(SUFFIX) d3crosssqr_k$(TSUFFIX).$(SUFFIX) d3crossxy_crossxz_k$(TSUFFIX).$(SUFFIX) d3crossxy_dotxz_k$(TSUFFIX).$(SUFFIX) d3dotxy_dotxz_k$(TSUFFIX).$(SUFFIX)
++CBLASOBJS += c3scal_k$(TSUFFIX).$(SUFFIX) c3axpy_k$(TSUFFIX).$(SUFFIX) c3axpby_k$(TSUFFIX).$(SUFFIX) c3had_k$(TSUFFIX).$(SUFFIX) c3cross_k$(TSUFFIX).$(SUFFIX) c3crossscal_k$(TSUFFIX).$(SUFFIX) c3dot_k$(TSUFFIX).$(SUFFIX) c3sqr_k$(TSUFFIX).$(SUFFIX) c3crossdot_k$(TSUFFIX).$(SUFFIX) c3crosssqr_k$(TSUFFIX).$(SUFFIX) c3crossxy_crossxz_k$(TSUFFIX).$(SUFFIX) c3crossxy_dotxz_k$(TSUFFIX).$(SUFFIX) c3dotxy_dotxz_k$(TSUFFIX).$(SUFFIX)
++ZBLASOBJS += z3scal_k$(TSUFFIX).$(SUFFIX) z3axpy_k$(TSUFFIX).$(SUFFIX) z3axpby_k$(TSUFFIX).$(SUFFIX) z3had_k$(TSUFFIX).$(SUFFIX) z3cross_k$(TSUFFIX).$(SUFFIX) z3crossscal_k$(TSUFFIX).$(SUFFIX) z3dot_k$(TSUFFIX).$(SUFFIX) z3sqr_k$(TSUFFIX).$(SUFFIX) z3crossdot_k$(TSUFFIX).$(SUFFIX) z3crosssqr_k$(TSUFFIX).$(SUFFIX) z3crossxy_crossxz_k$(TSUFFIX).$(SUFFIX) z3crossxy_dotxz_k$(TSUFFIX).$(SUFFIX) z3dotxy_dotxz_k$(TSUFFIX).$(SUFFIX)
++SBLASOBJS += s1scal_k$(TSUFFIX).$(SUFFIX) s1axpy_k$(TSUFFIX).$(SUFFIX) s1axpby_k$(TSUFFIX).$(SUFFIX) s1had_k$(TSUFFIX).$(SUFFIX) s1sqr_k$(TSUFFIX).$(SUFFIX) s1sqrt_k$(TSUFFIX).$(SUFFIX)
++DBLASOBJS += d1scal_k$(TSUFFIX).$(SUFFIX) d1axpy_k$(TSUFFIX).$(SUFFIX) d1axpby_k$(TSUFFIX).$(SUFFIX) d1had_k$(TSUFFIX).$(SUFFIX) d1sqr_k$(TSUFFIX).$(SUFFIX) d1sqrt_k$(TSUFFIX).$(SUFFIX)
++CBLASOBJS += c1scal_k$(TSUFFIX).$(SUFFIX) c1axpy_k$(TSUFFIX).$(SUFFIX) c1axpby_k$(TSUFFIX).$(SUFFIX) c1had_k$(TSUFFIX).$(SUFFIX) c1sqr_k$(TSUFFIX).$(SUFFIX) c1sqrt_k$(TSUFFIX).$(SUFFIX)
++ZBLASOBJS += z1scal_k$(TSUFFIX).$(SUFFIX) z1axpy_k$(TSUFFIX).$(SUFFIX) z1axpby_k$(TSUFFIX).$(SUFFIX) z1had_k$(TSUFFIX).$(SUFFIX) z1sqr_k$(TSUFFIX).$(SUFFIX) z1sqrt_k$(TSUFFIX).$(SUFFIX)
+diff --git a/kernel/Makefile.L1 b/kernel/Makefile.L1
+index 221cc5127..ce4613063 100644
+--- a/kernel/Makefile.L1
++++ b/kernel/Makefile.L1
+@@ -959,3 +959,293 @@ $(KDIR)zaxpby_k$(TSUFFIX).$(SUFFIX)  $(KDIR)zaxpby_k$(TPSUFFIX).$(PSUFFIX)  : $(
+ 	$(CC) -c $(CFLAGS) -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
+ 
+ 
++
++### v3blas (Layer 1, elementwise 3-vector / Layer 0 elementwise) ###
++ifndef S3KERNEL
++S3KERNEL = ../generic/v3.c
++endif
++ifndef D3KERNEL
++D3KERNEL = ../generic/v3.c
++endif
++ifndef C3KERNEL
++C3KERNEL = ../generic/zv3.c
++endif
++ifndef Z3KERNEL
++Z3KERNEL = ../generic/zv3.c
++endif
++ifndef S1KERNEL
++S1KERNEL = ../generic/ew.c
++endif
++ifndef D1KERNEL
++D1KERNEL = ../generic/ew.c
++endif
++ifndef C1KERNEL
++C1KERNEL = ../generic/zew.c
++endif
++ifndef Z1KERNEL
++Z1KERNEL = ../generic/zew.c
++endif
++
++$(KDIR)s3scal_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3scal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3scal_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3scal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3scal_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3scal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3scal_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3scal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3axpy_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3axpy_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3axpy_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3axpy_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3axpy_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3axpy_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3axpy_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3axpy_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3axpby_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3axpby_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3axpby_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3axpby_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3axpby_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3axpby_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3axpby_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3axpby_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3had_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3had_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3had_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3had_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3had_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3had_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3had_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3had_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3cross_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3cross_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3cross_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3cross_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3cross_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3cross_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3cross_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3cross_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3crossscal_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3crossscal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3crossscal_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3crossscal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3crossscal_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3crossscal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3crossscal_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3crossscal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3dot_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3dot_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3dot_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3dot_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3dot_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3dot_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3dot_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3dot_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3sqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3sqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3sqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3sqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3sqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3sqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3sqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3sqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3crossdot_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3crossdot_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3crossdot_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3crossdot_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3crossdot_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3crossdot_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3crossdot_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3crossdot_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3crosssqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3crosssqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3crosssqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3crosssqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3crosssqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3crosssqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3crosssqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3crosssqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3crossxy_crossxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3crossxy_crossxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3crossxy_crossxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3crossxy_crossxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3crossxy_crossxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3crossxy_crossxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3crossxy_crossxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3crossxy_crossxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3crossxy_dotxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3crossxy_dotxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3crossxy_dotxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3crossxy_dotxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3crossxy_dotxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3crossxy_dotxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3crossxy_dotxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3crossxy_dotxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s3dotxy_dotxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)s3dotxy_dotxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3dotxy_dotxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)d3dotxy_dotxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3dotxy_dotxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)c3dotxy_dotxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3dotxy_dotxz_k$(TSUFFIX).$(SUFFIX) $(KDIR)z3dotxy_dotxz_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z3KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s1scal_k$(TSUFFIX).$(SUFFIX) $(KDIR)s1scal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d1scal_k$(TSUFFIX).$(SUFFIX) $(KDIR)d1scal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c1scal_k$(TSUFFIX).$(SUFFIX) $(KDIR)c1scal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z1scal_k$(TSUFFIX).$(SUFFIX) $(KDIR)z1scal_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s1axpy_k$(TSUFFIX).$(SUFFIX) $(KDIR)s1axpy_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d1axpy_k$(TSUFFIX).$(SUFFIX) $(KDIR)d1axpy_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c1axpy_k$(TSUFFIX).$(SUFFIX) $(KDIR)c1axpy_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z1axpy_k$(TSUFFIX).$(SUFFIX) $(KDIR)z1axpy_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s1axpby_k$(TSUFFIX).$(SUFFIX) $(KDIR)s1axpby_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d1axpby_k$(TSUFFIX).$(SUFFIX) $(KDIR)d1axpby_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c1axpby_k$(TSUFFIX).$(SUFFIX) $(KDIR)c1axpby_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z1axpby_k$(TSUFFIX).$(SUFFIX) $(KDIR)z1axpby_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s1had_k$(TSUFFIX).$(SUFFIX) $(KDIR)s1had_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d1had_k$(TSUFFIX).$(SUFFIX) $(KDIR)d1had_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c1had_k$(TSUFFIX).$(SUFFIX) $(KDIR)c1had_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z1had_k$(TSUFFIX).$(SUFFIX) $(KDIR)z1had_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s1sqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)s1sqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d1sqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)d1sqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c1sqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)c1sqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z1sqr_k$(TSUFFIX).$(SUFFIX) $(KDIR)z1sqr_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s1sqrt_k$(TSUFFIX).$(SUFFIX) $(KDIR)s1sqrt_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(S1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d1sqrt_k$(TSUFFIX).$(SUFFIX) $(KDIR)d1sqrt_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(D1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c1sqrt_k$(TSUFFIX).$(SUFFIX) $(KDIR)c1sqrt_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(C1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z1sqrt_k$(TSUFFIX).$(SUFFIX) $(KDIR)z1sqrt_k$(TPSUFFIX).$(PSUFFIX): $(KERNELDIR)/$(Z1KERNEL)
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++SBLAS1OBJS += s1scal_k$(TSUFFIX).$(SUFFIX) s1axpy_k$(TSUFFIX).$(SUFFIX) s1axpby_k$(TSUFFIX).$(SUFFIX) s1had_k$(TSUFFIX).$(SUFFIX) s1sqr_k$(TSUFFIX).$(SUFFIX) s1sqrt_k$(TSUFFIX).$(SUFFIX)
++DBLAS1OBJS += d1scal_k$(TSUFFIX).$(SUFFIX) d1axpy_k$(TSUFFIX).$(SUFFIX) d1axpby_k$(TSUFFIX).$(SUFFIX) d1had_k$(TSUFFIX).$(SUFFIX) d1sqr_k$(TSUFFIX).$(SUFFIX) d1sqrt_k$(TSUFFIX).$(SUFFIX)
++CBLAS1OBJS += c1scal_k$(TSUFFIX).$(SUFFIX) c1axpy_k$(TSUFFIX).$(SUFFIX) c1axpby_k$(TSUFFIX).$(SUFFIX) c1had_k$(TSUFFIX).$(SUFFIX) c1sqr_k$(TSUFFIX).$(SUFFIX) c1sqrt_k$(TSUFFIX).$(SUFFIX)
++ZBLAS1OBJS += z1scal_k$(TSUFFIX).$(SUFFIX) z1axpy_k$(TSUFFIX).$(SUFFIX) z1axpby_k$(TSUFFIX).$(SUFFIX) z1had_k$(TSUFFIX).$(SUFFIX) z1sqr_k$(TSUFFIX).$(SUFFIX) z1sqrt_k$(TSUFFIX).$(SUFFIX)
++
++
++# v3blas kernel objects (combined)
++$(KDIR)s3_k$(TSUFFIX).$(SUFFIX): $(KERNELDIR)/../generic/v3.c
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d3_k$(TSUFFIX).$(SUFFIX): $(KERNELDIR)/../generic/v3.c
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c3_k$(TSUFFIX).$(SUFFIX): $(KERNELDIR)/../generic/zv3.c
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z3_k$(TSUFFIX).$(SUFFIX): $(KERNELDIR)/../generic/zv3.c
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++$(KDIR)s1_k$(TSUFFIX).$(SUFFIX): $(KERNELDIR)/../generic/ew.c
++	$(CC) -c $(CFLAGS) -DV3_S -UCOMPLEX -UDOUBLE $< -o $@
++
++$(KDIR)d1_k$(TSUFFIX).$(SUFFIX): $(KERNELDIR)/../generic/ew.c
++	$(CC) -c $(CFLAGS) -DV3_D -UCOMPLEX -DDOUBLE $< -o $@
++
++$(KDIR)c1_k$(TSUFFIX).$(SUFFIX): $(KERNELDIR)/../generic/zew.c
++	$(CC) -c $(CFLAGS) -DV3_C -DCOMPLEX -UCONJ -UDOUBLE $< -o $@
++
++$(KDIR)z1_k$(TSUFFIX).$(SUFFIX): $(KERNELDIR)/../generic/zew.c
++	$(CC) -c $(CFLAGS) -DV3_Z -DCOMPLEX -UCONJ -DDOUBLE $< -o $@
++
++SBLASOBJS += $(KDIR)s3_k$(TSUFFIX).$(SUFFIX) $(KDIR)s1_k$(TSUFFIX).$(SUFFIX)
++DBLASOBJS += $(KDIR)d3_k$(TSUFFIX).$(SUFFIX) $(KDIR)d1_k$(TSUFFIX).$(SUFFIX)
++CBLASOBJS += $(KDIR)c3_k$(TSUFFIX).$(SUFFIX) $(KDIR)c1_k$(TSUFFIX).$(SUFFIX)
++ZBLASOBJS += $(KDIR)z3_k$(TSUFFIX).$(SUFFIX) $(KDIR)z1_k$(TSUFFIX).$(SUFFIX)
+diff --git a/kernel/generic/ew.c b/kernel/generic/ew.c
+new file mode 100644
+index 000000000..a2788b4b0
+--- /dev/null
++++ b/kernel/generic/ew.c
+@@ -0,0 +1,80 @@
++/*****************************************************************************
++Copyright (c) 2026, v3blas contributors.  Real (s/d) Layer 0 bodies.
++
++Compiled once per precision with -DV3_S or -DV3_D.  Layer 0 is flat CBLAS: each
++operand carries its own inc, any inc may be 0 (broadcast one element to all n),
++negative (walk backwards from element n-1) or positive.
++
++A negative inc is normalised by starting the walk at (1-n)*inc, which is the
++last element.  An inc of 0 leaves the index at 0 forever, which is exactly the
++broadcast.  Nothing is written past element n-1.
++*****************************************************************************/
++
++#include <stdint.h>
++#include <math.h>
++
++#if defined(V3_S)
++#define P1(x) s1##x
++typedef float V3F;
++#define V3SQRT(x) sqrtf(x)
++#else
++#define P1(x) d1##x
++typedef double V3F;
++#define V3SQRT(x) sqrt(x)
++#endif
++
++/* int64_t, not BLASLONG: the public entry narrows from blasint, the body
++   widens so a Layer-0 call cannot truncate inside a chunked split. */
++#define N_ int64_t
++
++#define START(inc) ((inc) < 0 ? (1 - n) * (inc) : 0)
++
++int P1(scal_k)(N_ n, V3F a, const V3F *x, N_ incx, V3F *z, N_ incz)
++{
++	N_ i, ix = START(incx), iz = 0;
++	for (i = 0; i < n; i++, ix += incx, iz += incz)
++		z[iz] = a * x[ix];
++	return 0;
++}
++
++int P1(axpy_k)(N_ n, V3F a, const V3F *x, N_ incx, V3F *y, N_ incy)
++{
++	N_ i, ix = START(incx), iy = START(incy);
++	for (i = 0; i < n; i++, ix += incx, iy += incy)
++		y[iy] += a * x[ix];
++	return 0;
++}
++
++int P1(axpby_k)(N_ n, V3F a, const V3F *x, N_ incx,
++                V3F b, const V3F *y, N_ incy, V3F *z, N_ incz)
++{
++	N_ i, ix = START(incx), iy = START(incy), iz = 0;
++	for (i = 0; i < n; i++, ix += incx, iy += incy, iz += incz)
++		z[iz] = a * x[ix] + b * y[iy];
++	return 0;
++}
++
++int P1(had_k)(N_ n, const V3F *x, N_ incx, const V3F *y, N_ incy,
++              V3F *z, N_ incz)
++{
++	N_ i, ix = START(incx), iy = START(incy), iz = 0;
++	for (i = 0; i < n; i++, ix += incx, iy += incy, iz += incz)
++		z[iz] = x[ix] * y[iy];
++	return 0;
++}
++
++int P1(sqr_k)(N_ n, const V3F *x, N_ incx, V3F *z, N_ incz)
++{
++	N_ i, ix = START(incx), iz = 0;
++	for (i = 0; i < n; i++, ix += incx, iz += incz)
++		z[iz] = x[ix] * x[ix];
++	return 0;
++}
++
++int P1(sqrt_k)(N_ n, const V3F *x, N_ incx, V3F *z, N_ incz)
++{
++	N_ i, ix = START(incx), iz = 0;
++	for (i = 0; i < n; i++, ix += incx, iz += incz)
++		z[iz] = V3SQRT(x[ix]);
++	return 0;
++}
+\ No newline at end of file
+diff --git a/kernel/generic/v3.c b/kernel/generic/v3.c
+new file mode 100644
+index 000000000..5d26a0d02
+--- /dev/null
++++ b/kernel/generic/v3.c
+@@ -0,0 +1,193 @@
++/*****************************************************************************
++Copyright (c) 2026, v3blas contributors.  Real (s/d) Layer 1 bodies.
++
++Compiled once per precision with -DV3_S or -DV3_D.  Every body is a plain
++element loop: inc > 0 always, the entry has already normalised a negative
++stride onto the base pointer, and nothing is written past element n-1.
++
++The X/Y/Z/C/R macros index element i, component k, of the loop variable of the
++same name.  Every body uses x, y, z, c, c1, c2, r, r1, r2 for the same things.
++*****************************************************************************/
++
++#include <stdint.h>
++
++#if defined(V3_S)
++#define P3(x) s3##x
++typedef float V3F;
++#else
++#define P3(x) d3##x
++typedef double V3F;
++#endif
++
++/* int64_t, not BLASLONG: N = 1e8..1e10 overflows a 32-bit index and Layer 1
++   promises 64.  BLASLONG is 32-bit in a default OpenBLAS build. */
++#define N_ int64_t
++
++#define X(k) (*(x + i * inc + (k) * cinc))
++#define Y(k) (*(y + i * inc + (k) * cinc))
++#define Z(k) (*(z + i * inc + (k) * cinc))
++#define C(k) (*(c + i * inc + (k) * cinc))
++#define C1(k) (*(c1 + i * inc + (k) * cinc))
++#define C2(k) (*(c2 + i * inc + (k) * cinc))
++#define R(k)  (*(r  + i * inc + (k) * cinc))
++#define R1(k) (*(r1 + i * inc + (k) * cinc))
++#define R2(k) (*(r2 + i * inc + (k) * cinc))
++
++int P3(cross_k)(N_ n, const V3F *x, const V3F *y, V3F *c,
++                N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		C(0) = X(1) * Y(2) - X(2) * Y(1);
++		C(1) = X(2) * Y(0) - X(0) * Y(2);
++		C(2) = X(0) * Y(1) - X(1) * Y(0);
++	}
++	return 0;
++}
++
++int P3(crossscal_k)(N_ n, const V3F *x, const V3F *y, V3F a,
++                    V3F *c, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		C(0) = a * (X(1) * Y(2) - X(2) * Y(1));
++		C(1) = a * (X(2) * Y(0) - X(0) * Y(2));
++		C(2) = a * (X(0) * Y(1) - X(1) * Y(0));
++	}
++	return 0;
++}
++
++int P3(crossdot_k)(N_ n, const V3F *x, const V3F *y,
++                   const V3F *z, V3F *r, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F c0 = X(1) * Y(2) - X(2) * Y(1);
++		V3F c1 = X(2) * Y(0) - X(0) * Y(2);
++		V3F c2 = X(0) * Y(1) - X(1) * Y(0);
++		R(0) = c0 * Z(0) + c1 * Z(1) + c2 * Z(2);
++	}
++	return 0;
++}
++
++int P3(crosssqr_k)(N_ n, const V3F *x, const V3F *y, V3F *r,
++                   N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F c0 = X(1) * Y(2) - X(2) * Y(1);
++		V3F c1 = X(2) * Y(0) - X(0) * Y(2);
++		V3F c2 = X(0) * Y(1) - X(1) * Y(0);
++		R(0) = c0 * c0 + c1 * c1 + c2 * c2;
++	}
++	return 0;
++}
++
++int P3(dot_k)(N_ n, const V3F *x, const V3F *y, V3F *r,
++              N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++)
++		R(0) = X(0) * Y(0) + X(1) * Y(1) + X(2) * Y(2);
++	return 0;
++}
++
++int P3(sqr_k)(N_ n, const V3F *x, V3F *z, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++)
++		Z(0) = X(0) * X(0) + X(1) * X(1) + X(2) * X(2);
++	return 0;
++}
++
++int P3(had_k)(N_ n, const V3F *x, const V3F *y, V3F *z,
++              N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		Z(0) = X(0) * Y(0);
++		Z(1) = X(1) * Y(1);
++		Z(2) = X(2) * Y(2);
++	}
++	return 0;
++}
++
++int P3(scal_k)(N_ n, const V3F *x, V3F a, V3F *z,
++               N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		Z(0) = a * X(0);
++		Z(1) = a * X(1);
++		Z(2) = a * X(2);
++	}
++	return 0;
++}
++
++int P3(axpy_k)(N_ n, const V3F *x, V3F a, const V3F *y, V3F *z,
++               N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		Z(0) = a * X(0) + Y(0);
++		Z(1) = a * X(1) + Y(1);
++		Z(2) = a * X(2) + Y(2);
++	}
++	return 0;
++}
++
++int P3(axpby_k)(N_ n, const V3F *x, V3F a, const V3F *y, V3F b,
++                V3F *z, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		Z(0) = a * X(0) + b * Y(0);
++		Z(1) = a * X(1) + b * Y(1);
++		Z(2) = a * X(2) + b * Y(2);
++	}
++	return 0;
++}
++
++/* ---- forks: all share the first operand, vary the second ---- */
++
++int P3(crossxy_crossxz_k)(N_ n, const V3F *x, const V3F *y,
++                          const V3F *z, V3F *c1, V3F *c2,
++                          N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		C1(0) = X(1) * Y(2) - X(2) * Y(1);
++		C1(1) = X(2) * Y(0) - X(0) * Y(2);
++		C1(2) = X(0) * Y(1) - X(1) * Y(0);
++		C2(0) = X(1) * Z(2) - X(2) * Z(1);
++		C2(1) = X(2) * Z(0) - X(0) * Z(2);
++		C2(2) = X(0) * Z(1) - X(1) * Z(0);
++	}
++	return 0;
++}
++
++int P3(crossxy_dotxz_k)(N_ n, const V3F *x, const V3F *y,
++                        const V3F *z, V3F *c, V3F *r,
++                        N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		C(0) = X(1) * Y(2) - X(2) * Y(1);
++		C(1) = X(2) * Y(0) - X(0) * Y(2);
++		C(2) = X(0) * Y(1) - X(1) * Y(0);
++		R(0) = X(0) * Z(0) + X(1) * Z(1) + X(2) * Z(2);
++	}
++	return 0;
++}
++
++int P3(dotxy_dotxz_k)(N_ n, const V3F *x, const V3F *y,
++                      const V3F *z, V3F *r1, V3F *r2,
++                      N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		R1(0) = X(0) * Y(0) + X(1) * Y(1) + X(2) * Y(2);
++		R2(0) = X(0) * Z(0) + X(1) * Z(1) + X(2) * Z(2);
++	}
++	return 0;
++}
+\ No newline at end of file
+diff --git a/kernel/generic/zew.c b/kernel/generic/zew.c
+new file mode 100644
+index 000000000..66a962237
+--- /dev/null
++++ b/kernel/generic/zew.c
+@@ -0,0 +1,104 @@
++/*****************************************************************************
++Copyright (c) 2026, v3blas contributors.  Complex (c/z) Layer 0 bodies.
++
++Compiled once per precision with -DV3_C or -DV3_Z.  V3F is the *real* element
++type: one complex value occupies two adjacent V3F, so a CBLAS inc (which counts
++complex elements) becomes 2*inc in reals.
++
++Every product is bilinear -- no conjugation anywhere.  BIL(R,I,X,Y) expands the
++product of complex X by complex Y into R and I.
++*****************************************************************************/
++
++#include <stdint.h>
++#include <math.h>
++#include <complex.h>
++
++#if defined(V3_C)
++#define P1(x) c1##x
++typedef float V3F;
++typedef float complex V3C;
++#else
++#define P1(x) z1##x
++typedef double V3F;
++typedef double complex V3C;
++#endif
++
++/* int64_t, not BLASLONG: the public entry narrows from blasint, the body
++   widens so a Layer-0 call cannot truncate inside a chunked split. */
++#define N_ int64_t
++
++#define BIL(pr, pi, qr, qi, kr, ki)	\
++	do {				\
++		(kr) = (pr) * (qr) - (pi) * (qi);	\
++		(ki) = (pr) * (qi) + (pi) * (qr);	\
++	} while (0)
++
++/* A negative inc walks backwards from element n-1; an inc of 0 holds at
++   element 0, which is the broadcast. */
++#define START(inc) ((inc) < 0 ? (1 - n) * (inc) : 0)
++
++int P1(scal_k)(N_ n, V3F ar, V3F ai, const V3F *x, N_ incx, V3F *z, N_ incz)
++{
++	N_ i, ix = START(incx), iz = 0;
++	for (i = 0; i < n; i++, ix += incx, iz += incz) {
++		z[2 * iz]     = ar * x[2 * ix]     - ai * x[2 * ix + 1];
++		z[2 * iz + 1] = ar * x[2 * ix + 1] + ai * x[2 * ix];
++	}
++	return 0;
++}
++
++int P1(axpy_k)(N_ n, V3F ar, V3F ai, const V3F *x, N_ incx,
++               V3F *y, N_ incy)
++{
++	N_ i, ix = START(incx), iy = START(incy);
++	for (i = 0; i < n; i++, ix += incx, iy += incy) {
++		y[2 * iy]     += ar * x[2 * ix]     - ai * x[2 * ix + 1];
++		y[2 * iy + 1] += ar * x[2 * ix + 1] + ai * x[2 * ix];
++	}
++	return 0;
++}
++
++int P1(axpby_k)(N_ n, V3F ar, V3F ai, const V3F *x, N_ incx,
++                V3F br, V3F bi, const V3F *y, N_ incy, V3F *z, N_ incz)
++{
++	N_ i, ix = START(incx), iy = START(incy), iz = 0;
++	for (i = 0; i < n; i++, ix += incx, iy += incy, iz += incz) {
++		z[2 * iz]     = (ar * x[2 * ix]     - ai * x[2 * ix + 1])
++			      + (br * y[2 * iy]     - bi * y[2 * iy + 1]);
++		z[2 * iz + 1] = (ar * x[2 * ix + 1] + ai * x[2 * ix])
++			      + (br * y[2 * iy + 1] + bi * y[2 * iy]);
++	}
++	return 0;
++}
++
++int P1(had_k)(N_ n, const V3F *x, N_ incx, const V3F *y, N_ incy,
++              V3F *z, N_ incz)
++{
++	N_ i, ix = START(incx), iy = START(incy), iz = 0;
++	for (i = 0; i < n; i++, ix += incx, iy += incy, iz += incz)
++		BIL(x[2 * ix], x[2 * ix + 1], y[2 * iy], y[2 * iy + 1],
++		    z[2 * iz], z[2 * iz + 1]);
++	return 0;
++}
++
++int P1(sqr_k)(N_ n, const V3F *x, N_ incx, V3F *z, N_ incz)
++{
++	N_ i, ix = START(incx), iz = 0;
++	for (i = 0; i < n; i++, ix += incx, iz += incz)
++		BIL(x[2 * ix], x[2 * ix + 1], x[2 * ix], x[2 * ix + 1],
++		    z[2 * iz], z[2 * iz + 1]);
++	return 0;
++}
++
++/* principal square root of a complex value, no conjugation in the input */
++int P1(sqrt_k)(N_ n, const V3F *x, N_ incx, V3F *z, N_ incz)
++{
++	N_ i, ix = START(incx), iz = 0;
++	for (i = 0; i < n; i++, ix += incx, iz += incz) {
++		V3C v = x[2 * ix] + x[2 * ix + 1] * _Complex_I;
++		V3C w = csqrt(v);
++		z[2 * iz]     = (V3F) creal(w);
++		z[2 * iz + 1] = (V3F) cimag(w);
++	}
++	return 0;
++}
+\ No newline at end of file
+diff --git a/kernel/generic/zv3.c b/kernel/generic/zv3.c
+new file mode 100644
+index 000000000..24b63c22b
+--- /dev/null
++++ b/kernel/generic/zv3.c
+@@ -0,0 +1,285 @@
++/*****************************************************************************
++Copyright (c) 2026, v3blas contributors.  Complex (c/z) Layer 1 bodies.
++
++Compiled once per precision with -DV3_C or -DV3_Z.  V3F is the *real* element
++type: one complex value occupies two adjacent V3F, so every offset below is
++doubled and component k of element i starts at 2*(i*inc + k*cinc) reals.
++
++Every product is bilinear -- no conjugation anywhere.  BIL(R,I,X,Y) expands
++the product of complex X by complex Y into R and I.
++*****************************************************************************/
++
++#include <stdint.h>
++
++#if defined(V3_C)
++#define P3(x) c3##x
++typedef float V3F;
++#else
++#define P3(x) z3##x
++typedef double V3F;
++#endif
++
++/* int64_t, not BLASLONG: N = 1e8..1e10 overflows a 32-bit index and Layer 1
++   promises 64.  BLASLONG is 32-bit in a default OpenBLAS build. */
++#define N_ int64_t
++
++#define X(k) ((x) + 2 * (i * inc + (k) * cinc))
++#define Y(k) ((y) + 2 * (i * inc + (k) * cinc))
++#define Z(k) ((z) + 2 * (i * inc + (k) * cinc))
++#define C(k) ((c) + 2 * (i * inc + (k) * cinc))
++#define C1(k) ((c1) + 2 * (i * inc + (k) * cinc))
++#define C2(k) ((c2) + 2 * (i * inc + (k) * cinc))
++#define R(k) ((r) + 2 * (i * inc + (k) * cinc))
++#define R1(k) ((r1) + 2 * (i * inc + (k) * cinc))
++#define R2(k) ((r2) + 2 * (i * inc + (k) * cinc))
++
++/* product of the complex values p and q, no conjugate */
++#define BIL(pr, pi, qr, qi, kr, ki)	\
++	do {				\
++		(kr) = (pr) * (qr) - (pi) * (qi);	\
++		(ki) = (pr) * (qi) + (pi) * (qr);	\
++	} while (0)
++
++/* a complex scalar scaled onto a real scalar */
++#define BILA(pr, pi, kr, ki)	\
++	do {			\
++		(kr) = ar * (pr) - ai * (pi);	\
++		(ki) = ar * (pi) + ai * (pr);	\
++	} while (0)
++
++int P3(cross_k)(N_ n, const V3F *x, const V3F *y, V3F *c,
++                N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F t0r, t0i, t1r, t1i, t2r, t2i, p, q;
++		BIL(X(1)[0], X(1)[1], Y(2)[0], Y(2)[1], p, q);
++		BIL(X(2)[0], X(2)[1], Y(1)[0], Y(1)[1], t0r, t0i);
++		C(0)[0] = p - t0r;  C(0)[1] = q - t0i;
++		BIL(X(2)[0], X(2)[1], Y(0)[0], Y(0)[1], p, q);
++		BIL(X(0)[0], X(0)[1], Y(2)[0], Y(2)[1], t1r, t1i);
++		C(1)[0] = p - t1r;  C(1)[1] = q - t1i;
++		BIL(X(0)[0], X(0)[1], Y(1)[0], Y(1)[1], p, q);
++		BIL(X(1)[0], X(1)[1], Y(0)[0], Y(0)[1], t2r, t2i);
++		C(2)[0] = p - t2r;  C(2)[1] = q - t2i;
++	}
++	return 0;
++}
++
++int P3(crossscal_k)(N_ n, const V3F *x, const V3F *y, V3F ar, V3F ai,
++                    V3F *c, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F t0r, t0i, t1r, t1i, t2r, t2i, p, q;
++		BIL(X(1)[0], X(1)[1], Y(2)[0], Y(2)[1], p, q);
++		BIL(X(2)[0], X(2)[1], Y(1)[0], Y(1)[1], t0r, t0i);
++		BILA(p - t0r, q - t0i, C(0)[0], C(0)[1]);
++		BIL(X(2)[0], X(2)[1], Y(0)[0], Y(0)[1], p, q);
++		BIL(X(0)[0], X(0)[1], Y(2)[0], Y(2)[1], t1r, t1i);
++		BILA(p - t1r, q - t1i, C(1)[0], C(1)[1]);
++		BIL(X(0)[0], X(0)[1], Y(1)[0], Y(1)[1], p, q);
++		BIL(X(1)[0], X(1)[1], Y(0)[0], Y(0)[1], t2r, t2i);
++		BILA(p - t2r, q - t2i, C(2)[0], C(2)[1]);
++	}
++	return 0;
++}
++
++int P3(crossdot_k)(N_ n, const V3F *x, const V3F *y, const V3F *z,
++                   V3F *r, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F t0r, t0i, t1r, t1i, t2r, t2i, p, q, sr = 0, si = 0;
++		BIL(X(1)[0], X(1)[1], Y(2)[0], Y(2)[1], t0r, t0i);
++		BIL(X(2)[0], X(2)[1], Y(1)[0], Y(1)[1], p, q);
++		t0r -= p;  t0i -= q;
++		BIL(X(2)[0], X(2)[1], Y(0)[0], Y(0)[1], t1r, t1i);
++		BIL(X(0)[0], X(0)[1], Y(2)[0], Y(2)[1], p, q);
++		t1r -= p;  t1i -= q;
++		BIL(X(0)[0], X(0)[1], Y(1)[0], Y(1)[1], t2r, t2i);
++		BIL(X(1)[0], X(1)[1], Y(0)[0], Y(0)[1], p, q);
++		t2r -= p;  t2i -= q;
++		BIL(t0r, t0i, Z(0)[0], Z(0)[1], p, q); sr += p;  si += q;
++		BIL(t1r, t1i, Z(1)[0], Z(1)[1], p, q); sr += p;  si += q;
++		BIL(t2r, t2i, Z(2)[0], Z(2)[1], p, q); sr += p;  si += q;
++		R(0)[0] = sr;  R(0)[1] = si;
++	}
++	return 0;
++}
++
++int P3(crosssqr_k)(N_ n, const V3F *x, const V3F *y, V3F *r,
++                   N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F t0r, t0i, t1r, t1i, t2r, t2i, p, q, sr = 0, si = 0;
++		BIL(X(1)[0], X(1)[1], Y(2)[0], Y(2)[1], t0r, t0i);
++		BIL(X(2)[0], X(2)[1], Y(1)[0], Y(1)[1], p, q);
++		t0r -= p;  t0i -= q;
++		BIL(X(2)[0], X(2)[1], Y(0)[0], Y(0)[1], t1r, t1i);
++		BIL(X(0)[0], X(0)[1], Y(2)[0], Y(2)[1], p, q);
++		t1r -= p;  t1i -= q;
++		BIL(X(0)[0], X(0)[1], Y(1)[0], Y(1)[1], t2r, t2i);
++		BIL(X(1)[0], X(1)[1], Y(0)[0], Y(0)[1], p, q);
++		t2r -= p;  t2i -= q;
++		BIL(t0r, t0i, t0r, t0i, p, q); sr += p;  si += q;
++		BIL(t1r, t1i, t1r, t1i, p, q); sr += p;  si += q;
++		BIL(t2r, t2i, t2r, t2i, p, q); sr += p;  si += q;
++		R(0)[0] = sr;  R(0)[1] = si;
++	}
++	return 0;
++}
++
++int P3(dot_k)(N_ n, const V3F *x, const V3F *y, V3F *r, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F p, q, sr = 0, si = 0;
++		BIL(X(0)[0], X(0)[1], Y(0)[0], Y(0)[1], p, q); sr += p;  si += q;
++		BIL(X(1)[0], X(1)[1], Y(1)[0], Y(1)[1], p, q); sr += p;  si += q;
++		BIL(X(2)[0], X(2)[1], Y(2)[0], Y(2)[1], p, q); sr += p;  si += q;
++		R(0)[0] = sr;  R(0)[1] = si;
++	}
++	return 0;
++}
++
++int P3(sqr_k)(N_ n, const V3F *x, V3F *z, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F p, q, sr = 0, si = 0;
++		BIL(X(0)[0], X(0)[1], X(0)[0], X(0)[1], p, q); sr += p;  si += q;
++		BIL(X(1)[0], X(1)[1], X(1)[0], X(1)[1], p, q); sr += p;  si += q;
++		BIL(X(2)[0], X(2)[1], X(2)[0], X(2)[1], p, q); sr += p;  si += q;
++		Z(0)[0] = sr;  Z(0)[1] = si;
++	}
++	return 0;
++}
++
++int P3(had_k)(N_ n, const V3F *x, const V3F *y, V3F *z, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		BIL(X(0)[0], X(0)[1], Y(0)[0], Y(0)[1], Z(0)[0], Z(0)[1]);
++		BIL(X(1)[0], X(1)[1], Y(1)[0], Y(1)[1], Z(1)[0], Z(1)[1]);
++		BIL(X(2)[0], X(2)[1], Y(2)[0], Y(2)[1], Z(2)[0], Z(2)[1]);
++	}
++	return 0;
++}
++
++int P3(scal_k)(N_ n, const V3F *x, V3F ar, V3F ai, V3F *z, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		BILA(X(0)[0], X(0)[1], Z(0)[0], Z(0)[1]);
++		BILA(X(1)[0], X(1)[1], Z(1)[0], Z(1)[1]);
++		BILA(X(2)[0], X(2)[1], Z(2)[0], Z(2)[1]);
++	}
++	return 0;
++}
++
++int P3(axpy_k)(N_ n, const V3F *x, V3F ar, V3F ai, const V3F *y, V3F *z,
++               N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		BILA(X(0)[0], X(0)[1], Z(0)[0], Z(0)[1]);
++		Z(0)[0] += Y(0)[0];  Z(0)[1] += Y(0)[1];
++		BILA(X(1)[0], X(1)[1], Z(1)[0], Z(1)[1]);
++		Z(1)[0] += Y(1)[0];  Z(1)[1] += Y(1)[1];
++		BILA(X(2)[0], X(2)[1], Z(2)[0], Z(2)[1]);
++		Z(2)[0] += Y(2)[0];  Z(2)[1] += Y(2)[1];
++	}
++	return 0;
++}
++
++int P3(axpby_k)(N_ n, const V3F *x, V3F ar, V3F ai,
++                const V3F *y, V3F br, V3F bi, V3F *z, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F p, q;
++		BILA(X(0)[0], X(0)[1], p, q);
++		BIL(br, bi, Y(0)[0], Y(0)[1], Z(0)[0], Z(0)[1]);
++		Z(0)[0] += p;  Z(0)[1] += q;
++		BILA(X(1)[0], X(1)[1], p, q);
++		BIL(br, bi, Y(1)[0], Y(1)[1], Z(1)[0], Z(1)[1]);
++		Z(1)[0] += p;  Z(1)[1] += q;
++		BILA(X(2)[0], X(2)[1], p, q);
++		BIL(br, bi, Y(2)[0], Y(2)[1], Z(2)[0], Z(2)[1]);
++		Z(2)[0] += p;  Z(2)[1] += q;
++	}
++	return 0;
++}
++
++/* ---- forks: all share the first operand, vary the second ---- */
++
++int P3(crossxy_crossxz_k)(N_ n, const V3F *x, const V3F *y, const V3F *z,
++                          V3F *c1, V3F *c2, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F t0r, t0i, t1r, t1i, t2r, t2i, p, q;
++		BIL(X(1)[0], X(1)[1], Y(2)[0], Y(2)[1], t0r, t0i);
++		BIL(X(2)[0], X(2)[1], Y(1)[0], Y(1)[1], p, q);
++		C1(0)[0] = t0r - p;  C1(0)[1] = t0i - q;
++		BIL(X(2)[0], X(2)[1], Y(0)[0], Y(0)[1], t1r, t1i);
++		BIL(X(0)[0], X(0)[1], Y(2)[0], Y(2)[1], p, q);
++		C1(1)[0] = t1r - p;  C1(1)[1] = t1i - q;
++		BIL(X(0)[0], X(0)[1], Y(1)[0], Y(1)[1], t2r, t2i);
++		BIL(X(1)[0], X(1)[1], Y(0)[0], Y(0)[1], p, q);
++		C1(2)[0] = t2r - p;  C1(2)[1] = t2i - q;
++		BIL(X(1)[0], X(1)[1], Z(2)[0], Z(2)[1], t0r, t0i);
++		BIL(X(2)[0], X(2)[1], Z(1)[0], Z(1)[1], p, q);
++		C2(0)[0] = t0r - p;  C2(0)[1] = t0i - q;
++		BIL(X(2)[0], X(2)[1], Z(0)[0], Z(0)[1], t1r, t1i);
++		BIL(X(0)[0], X(0)[1], Z(2)[0], Z(2)[1], p, q);
++		C2(1)[0] = t1r - p;  C2(1)[1] = t1i - q;
++		BIL(X(0)[0], X(0)[1], Z(1)[0], Z(1)[1], t2r, t2i);
++		BIL(X(1)[0], X(1)[1], Z(0)[0], Z(0)[1], p, q);
++		C2(2)[0] = t2r - p;  C2(2)[1] = t2i - q;
++	}
++	return 0;
++}
++
++int P3(crossxy_dotxz_k)(N_ n, const V3F *x, const V3F *y, const V3F *z,
++                        V3F *c, V3F *r, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F t0r, t0i, t1r, t1i, t2r, t2i, p, q, sr = 0, si = 0;
++		BIL(X(1)[0], X(1)[1], Y(2)[0], Y(2)[1], t0r, t0i);
++		BIL(X(2)[0], X(2)[1], Y(1)[0], Y(1)[1], p, q);
++		C(0)[0] = t0r - p;  C(0)[1] = t0i - q;
++		BIL(X(2)[0], X(2)[1], Y(0)[0], Y(0)[1], t1r, t1i);
++		BIL(X(0)[0], X(0)[1], Y(2)[0], Y(2)[1], p, q);
++		C(1)[0] = t1r - p;  C(1)[1] = t1i - q;
++		BIL(X(0)[0], X(0)[1], Y(1)[0], Y(1)[1], t2r, t2i);
++		BIL(X(1)[0], X(1)[1], Y(0)[0], Y(0)[1], p, q);
++		C(2)[0] = t2r - p;  C(2)[1] = t2i - q;
++		BIL(X(0)[0], X(0)[1], Z(0)[0], Z(0)[1], p, q); sr += p;  si += q;
++		BIL(X(1)[0], X(1)[1], Z(1)[0], Z(1)[1], p, q); sr += p;  si += q;
++		BIL(X(2)[0], X(2)[1], Z(2)[0], Z(2)[1], p, q); sr += p;  si += q;
++		R(0)[0] = sr;  R(0)[1] = si;
++	}
++	return 0;
++}
++
++int P3(dotxy_dotxz_k)(N_ n, const V3F *x, const V3F *y, const V3F *z,
++                      V3F *r1, V3F *r2, N_ inc, N_ cinc)
++{
++	N_ i;
++	for (i = 0; i < n; i++) {
++		V3F p, q, s1r = 0, s1i = 0, s2r = 0, s2i = 0;
++		BIL(X(0)[0], X(0)[1], Y(0)[0], Y(0)[1], p, q); s1r += p;  s1i += q;
++		BIL(X(1)[0], X(1)[1], Y(1)[0], Y(1)[1], p, q); s1r += p;  s1i += q;
++		BIL(X(2)[0], X(2)[1], Y(2)[0], Y(2)[1], p, q); s1r += p;  s1i += q;
++		BIL(X(0)[0], X(0)[1], Z(0)[0], Z(0)[1], p, q); s2r += p;  s2i += q;
++		BIL(X(1)[0], X(1)[1], Z(1)[0], Z(1)[1], p, q); s2r += p;  s2i += q;
++		BIL(X(2)[0], X(2)[1], Z(2)[0], Z(2)[1], p, q); s2r += p;  s2i += q;
++		R1(0)[0] = s1r;  R1(0)[1] = s1i;
++		R2(0)[0] = s2r;  R2(0)[1] = s2i;
++	}
++	return 0;
++}
+\ No newline at end of file
+diff --git a/v3blas.h b/v3blas.h
+new file mode 100644
+index 000000000..660f29600
+--- /dev/null
++++ b/v3blas.h
+@@ -0,0 +1,117 @@
++/*****************************************************************************
++Copyright (c) 2026, v3blas contributors
++All rights reserved.
++
++Redistribution and use in source and binary forms, with or without
++modification, are permitted provided that the following conditions are met:
++
++   1. Redistributions of source code must retain the above copyright
++      notice, this list of conditions and the following disclaimer.
++   2. Redistributions in binary form must reproduce the above copyright
++      notice, this list of conditions and the following disclaimer in the
++      documentation and/or other materials provided with the distribution.
++
++THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++AND ANY EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED.
++*****************************************************************************/
++
++#ifndef V3BLAS_H
++#define V3BLAS_H
++
++#include <stdint.h>
++#include "cblas.h"		/* blasint, the host index type for Layer 0 */
++
++#define V3BLAS_VERSION_MAJOR 1
++#define V3BLAS_VERSION_MINOR 0
++#define V3BLAS_VERSION_PATCH 0
++
++/* Error status.  Set, never returned, exactly as CBLAS specifies it. */
++#define V3BLAS_OK		0
++#define V3BLAS_PARAM		1
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++/*
++ * <p> is the precision (s d c z), T is the real element type: float for s,
++ * double for the rest.  For c and z one complex value occupies two adjacent
++ * T, so a <p>3v component stride is 2 * cinc reals and every product below is
++ * bilinear with no conjugation.
++ *
++ * Handles are 48 B and 24 B.  cinc is 3 * inc, stored rather than derived.
++ */
++/* A kernel scalar is a plain T for s/d and a real pair for c/z.  Both are
++   macros taking the element type, so the element type is substituted before
++   the scalar declaration is expanded. */
++#define V3_SCALAR_REAL(T, R, I)  T R
++#define V3_SCALAR_CPLX(T, R, I)  T R, T I
++
++#define V3BLAS_API(P, T, S)								\
++										\
++typedef struct { T *x, *y, *z; int64_t n, inc, cinc; } P##3v;			\
++typedef struct { T *p;            int64_t n, inc;      } P##1v;			\
++										\
++/* Layer 1 -- one argument per operand, n and inc in the handle */		\
++void P##3scal     (const P##3v *x, S(T, a, ai), P##3v *z);				\
++void P##3axpy     (const P##3v *x, S(T, a, ai), P##3v *y);				\
++void P##3axpby    (const P##3v *x, S(T, a, ai), const P##3v *y, S(T, b, bi), P##3v *z);	\
++void P##3had      (const P##3v *x, const P##3v *y, P##3v *z);		\
++void P##3cross    (const P##3v *x, const P##3v *y, P##3v *c);			\
++void P##3crossscal(const P##3v *x, const P##3v *y, S(T, a, ai), P##3v *c);		\
++void P##3dot      (const P##3v *x, const P##3v *y, P##1v *r);		\
++void P##3sqr      (const P##3v *x, P##3v *z);				\
++void P##3crossdot (const P##3v *x, const P##3v *y, const P##3v *z, P##1v *r);\
++void P##3crosssqr (const P##3v *x, const P##3v *y, P##1v *r);		\
++										\
++/* Forks -- all share the first operand and vary the second */		\
++void P##3crossxy_crossxz(const P##3v *x, const P##3v *y, const P##3v *z,	\
++			 P##3v *c1, P##3v *c2);				\
++void P##3crossxy_dotxz  (const P##3v *x, const P##3v *y, const P##3v *z,	\
++			 P##3v *c, P##1v *r);				\
++void P##3dotxy_dotxz    (const P##3v *x, const P##3v *y, const P##3v *z,	\
++			 P##1v *r1, P##1v *r2);				\
++										\
++/* Layer 0 -- flat CBLAS */						\
++void P##1scal (blasint n, S(T, a, ai), const T *x, blasint incx, T *z, blasint incz);\
++void P##1axpy (blasint n, S(T, a, ai), const T *x, blasint incx, T *y, blasint incy);\
++void P##1axpby(blasint n, S(T, a, ai), const T *x, blasint incx,		\
++	       S(T, b, bi), const T *y, blasint incy, T *z, blasint incz);	\
++void P##1had  (blasint n, const T *x, blasint incx,				\
++	       const T *y, blasint incy, T *z, blasint incz);		\
++void P##1sqr  (blasint n, const T *x, blasint incx, T *z, blasint incz);	\
++void P##1sqrt (blasint n, const T *x, blasint incx, T *z, blasint incz);	\
++										\
++/* Constructors -- views own nothing; _create is the only allocation */	\
++P##3v *P##3_create(int64_t n);						\
++P##3v *P##3_wrap(P##3v *out, T *base, int64_t n, int64_t inc);		\
++P##3v *P##3_wrap_component(P##3v *out, const P##3v *v, int k);		\
++P##1v  P##3_component(const P##3v *v, int k);				\
++int64_t P##3_pitch(int64_t n);		/* ((3n + 7) / 8) * 8, fixed at 8 */	\
++void    P##3_destroy(P##3v *v);						\
++										\
++P##1v *P##1_create(blasint n);						\
++P##1v *P##1_wrap(P##1v *out, T *base, blasint n, blasint inc);		\
++void    P##1_destroy(P##1v *v);						\
++										\
++/* Error status -- per-precision thread-local */				\
++void P##3_set_error_status(int status);					\
++int  P##3_get_error_status(void);
++
++V3BLAS_API(s, float, V3_SCALAR_REAL)
++V3BLAS_API(d, double, V3_SCALAR_REAL)
++#if defined(BUILD_COMPLEX)
++V3BLAS_API(c, float, V3_SCALAR_CPLX)
++V3BLAS_API(z, double, V3_SCALAR_CPLX)
++#endif
++
++#undef V3BLAS_API
++#undef V3_SCALAR_REAL
++#undef V3_SCALAR_CPLX
++
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif	/* V3BLAS_H */
+\ No newline at end of file
