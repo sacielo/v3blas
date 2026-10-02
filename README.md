@@ -37,6 +37,19 @@ where one complex value occupies two adjacent `T`s. That is what CBLAS and
 OpenBLAS both do, so a `<p>3v` for `c` or `z` points into a buffer of `n`
 complex values and its component stride is `2 * cinc` reals.
 
+**Over `c` and `z` every product in the tables below is bilinear.** Component
+`k` is the pair at `x + 2*k*cinc`, written `x_k = (x_kr, x_ki)`, and
+
+    x_k · y_k  =  (x_kr·y_kr − x_ki·y_ki)  +  i·(x_kr·y_ki + x_ki·y_kr)
+
+with `+`, `−` and `a·u` componentwise on the pair. The cross is
+`c₀ = x₁y₂ − x₂y₁`, `c₁ = x₂y₀ − x₀y₂`, `c₂ = x₀y₁ − x₁y₀`, each `x_j·y_k`
+being that product. No conjugate appears anywhere. `<p>1sqr` is `x·x` and is
+genuinely complex-valued; `<p>1sqrt` is the principal square root of it, which
+is why √ is the only stem in the set that needs a branch convention at all.
+This convention is v1's and is versioned like any other semantics — see
+§Versioning.
+
 **The mathematics column is the right-hand side only.** No kernel writes its
 first operand in place — every output is a new value, spelled at the call site
 by passing an input handle again if that is what you want. `a·x + y` is the
@@ -446,7 +459,7 @@ products are bilinear.
 | operand disagreement fails | mismatched `n` sets `V3BLAS_PARAM`; the output is untouched |
 | a rejected call writes nothing | the output compares equal to its pre-call copy |
 | a split changes nothing | all of the above hold at every thread count |
-| complex is bilinear | `c3cross`/`c3dot` match the expanded real-pair formula |
+| complex is bilinear | `c3cross`/`c3dot` match the expanded real-pair formula, component by component |
 
 ---
 

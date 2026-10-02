@@ -113,14 +113,25 @@ there — `num_cpu_avail(int)` (`common_thread.h:143`, which honours
 `openblas_set_num_threads` and OpenBLAS's OpenMP mode) and `MULTI_THREAD_MINIMAL`
 — so v3blas adds no knob of its own and inherits the host's threshold.
 
-The spawn is `exec_blas(BLASLONG num_cpu, blas_param_t *param, void *buffer)`
-(`common_thread.h:198`), **not** `blas_level1_thread`
+The spawn is `exec_blas` (`common_thread.h:191,198`), **not**
+`blas_level1_thread`
 (`common_thread.h:206`). The latter takes three operand slots, one scalar, and
 a cast function pointer, which fits `<p>3cross` and `<p>3had` and fits none of
 `<p>3axpby`, `<p>3crossdot` or the three forks — three mechanisms for nineteen
 bodies means three places for an SMP bug. `exec_blas` has no arity limit: we
 define one param struct per family, holding the kernel id plus the argument
 tuple, and hand the spawned function that single `void *`.
+
+Its prototype is build-conditional, so `interface/v3.c` and `interface/ew.c`
+sit in the same `#ifdef` the rest of OpenBLAS's threaded drivers sit in:
+
+    #ifdef USE_OPENMP
+    int exec_blas(BLASLONG num_cpu, blas_queue_t *queue);
+    #else
+    int exec_blas(BLASLONG num_cpu, blas_param_t *param, void *buffer);
+    #endif
+
+The pthread branch is the one the `blas_param_t` design above targets.
 
 Split `n` into contiguous chunks, never interleaved, so each thread's
 prefetcher gets a linear stream. No work stealing: at N = 10⁸ over 16 threads
