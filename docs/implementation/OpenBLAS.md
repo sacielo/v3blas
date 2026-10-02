@@ -50,7 +50,12 @@ That is exactly why the README defines ours.
 | `kernel/generic/ew.c` | Layer-0 real bodies → `s1_*`, `d1_*` |
 | `kernel/generic/zew.c` | Layer-0 complex bodies → `c1_*`, `z1_*` |
 | `interface/v3.c`, `interface/ew.c` | public entries, both `NAME` and `CNAME` |
-| `include/v3blas.h` | handle typedefs `s3v`…`z1v`, constructors, `V3BLAS_OK`/`V3BLAS_PARAM`, user prototypes |
+| `include/v3blas.h` | handle typedefs `s3v`,`d3v`,`c3v`,`z3v` and `s1v`…`z1v`; constructors; `V3BLAS_OK`/`V3BLAS_PARAM`; user prototypes |
+
+README writes the precision as a placeholder, `<p>`, because nothing about the
+mathematics or the calling convention changes between the four. The rows above
+spell the prefixes out instead, because they are the rows telling you which
+instantiations each file has to produce.
 
 Appended, not rewritten: `_k` prototypes in `common_level1.h`; registration in
 `kernel/Makefile.L1` (legacy build) **and** `cmake/kernel.cmake`
@@ -71,11 +76,11 @@ arguments per call across 19 bodies × 4 precisions is not worth mimicking.
 
 ```c
 /* Layer 1 */
-int d3cross_k(BLASLONG n, BLASLONG inc,
-              const T *x, const T *y, const T *z, T *cx, T *cy, T *cz);
+int <p>3cross_k(BLASLONG n, BLASLONG inc,
+                const T *x, const T *y, const T *z, T *cx, T *cy, T *cz);
 /* Layer 0 */
-int d1had_k(BLASLONG n, BLASLONG incx, BLASLONG incy, BLASLONG incz,
-            const T *x, const T *y, T *z);
+int <p>1had_k(BLASLONG n, BLASLONG incx, BLASLONG incy, BLASLONG incz,
+              const T *x, const T *y, T *z);
 ```
 
 Flat, `cinc` left derived inside the body (it is only ever `3 * inc`), pointers
@@ -111,8 +116,8 @@ there — `num_cpu_avail(int)` (`common_thread.h:143`, which honours
 The spawn is `exec_blas(BLASLONG num_cpu, blas_param_t *param, void *buffer)`
 (`common_thread.h:198`), **not** `blas_level1_thread`
 (`common_thread.h:206`). The latter takes three operand slots, one scalar, and
-a cast function pointer, which fits `d3cross` and `d3had` and fits none of
-`d3axpby`, `d3crossdot` or the three forks — three mechanisms for nineteen
+a cast function pointer, which fits `<p>3cross` and `<p>3had` and fits none of
+`<p>3axpby`, `<p>3crossdot` or the three forks — three mechanisms for nineteen
 bodies means three places for an SMP bug. `exec_blas` has no arity limit: we
 define one param struct per family, holding the kernel id plus the argument
 tuple, and hand the spawned function that single `void *`.
