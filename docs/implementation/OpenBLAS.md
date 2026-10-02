@@ -1,271 +1,143 @@
-# Implementation guidelines: OpenBLAS (primary target)
+# Porting v3blas to OpenBLAS
 
-Status: **primary target.** The submodule is pinned to the release tag
-**`v0.3.34`** (commit `c0827a716473bd61d3e8fa44c25184d370400267`), recorded
-in `.gitmodules`. Pinning to a tag rather than a branch means the v3blas
-patch has to be re-based when moving to a newer release.
+Target: **OpenBLAS `v0.3.34`**, pinned in `.gitmodules` at
+`e0166008be8e466242aa76b2ff75ce3f0fbf574a` as a shallow submodule. Moving to a
+newer release means re-basing the patch.
 
-**What belongs here.** Anything that is true of *this* library and not of BLAS
-at large: which internal symbol carries the thread count, which header the
-error hook lives in, file names inside the host tree, the CNAME/FLOAT
-preprocessor idiom, the `_k` ABI. **The API contract itself is not here** —
-signatures, the validation table, the error *semantics*, handle layout,
-versioning and thread-safety rules are all in the top-level `README.md`,
-because they are CBLAS's business and another implementation must honour them
-too. Where this document and the README disagree about the API, the README
-wins and this document is wrong.
+This document is how to land the kernel set in `README.md`. It contains no API
+contract: signatures, handles, strides, validation, versioning and the status
+mechanism are all in the README, because they are CBLAS's business and another
+implementation must honour them too. Where this document and the README
+disagree about the API, the README wins and this document is wrong.
 
-**Verification status: unverified.** The mechanism facts below were read
-from the public OpenBLAS tree and are believed correct, but
-`subm/openblas/` has never been initialized or built in this repo, so
-nothing here has been checked against a compiling checkout. Claims that
-need confirmation before the patch is written are marked **⚠
-unverified**; the first real build closes them.
+Every path and symbol below was read from the pinned tree.
 
-This document says how to code the kernel set in `README.md` onto OpenBLAS.
-The coding happens on a branch inside `subm/openblas/`; nothing here
-duplicates the spec.
+## The model we mirror
 
-Hard constraint: **plain C only.** OpenBLAS does not compile C++ sources.
-Its own genericity mechanism is the preprocessor (CNAME/FLOAT), and we
-use exactly that — the same path `saxpy` itself takes from one C file to
-four precision symbols.
+`axpy` is the operation to copy, and it is three layers:
 
-## The saxpy model (what we mirror)
+1. **Generic kernel body**, `kernel/arm/axpy.c` — portable C against type
+   macros, per-element work in an unrolled streaming loop. Registered for four
+   precisions at once: `kernel/x86_64/KERNEL.generic:102-105` maps
+   `SAXPYKERNEL` and `DAXPYKERNEL` to `../arm/axpy.c`, `CAXPYKERNEL` and
+   `ZAXPYKERNEL` to `../arm/zaxpy.c`.
+2. **Complex sibling**, `kernel/arm/zaxpy.c` — `FLOAT` becomes the real
+   component, arrays are flat interleaved (`x[ix]`, `x[ix+1]`,
+   `inc_x2 = 2*inc_x`), the scalar arrives as `da_r, da_i`, and
+   `#if !defined(CONJ)` picks the conjugation convention. Our v1 is always the
+   no-CONJ path, so that switch stays dormant.
+3. **Public entry**, `interface/axpy.c` — the Fortran-ABI `NAME` and the
+   CBLAS-style `CNAME`, edge cases, then one call into the kernel through an
+   `_k` macro (`AXPYU_K` → `DAXPYU_K` → `daxpy_k`, resolved via
+   `common_macro.h` + `common_d.h`; `_k` prototypes live in
+   `common_level1.h`).
 
-**⚠ unverified** — read from the public tree, not confirmed against a
-build at v0.3.34. Path names in particular may have moved.
+Per-precision boilerplate is *build glue*, not hand-written:
+`GenerateNamedObjects` (`cmake/utils.cmake:305`) emits a two-line wrapper per
+precision (`#define CNAME`, `#define DOUBLE`, `#include` the body).
 
-Three layers, one operation:
+Note what `interface/axpy.c:74` does — `if (n <= 0) return;` — and what it does
+**not** do: validate, or report anything. There is no error-status mechanism
+anywhere in the tree (`CBLAS_PARAM` is absent from `cblas.h` and `common.h`).
+That is exactly why the README defines ours.
 
-1. **Kernel body** — one portable C file written against type macros,
-   `kernel/arm/axpy.c`. It defines only `CNAME` and `FLOAT`-typed code;
-   the same file is registered for two precisions at once
-   (`SAXPYKERNEL` *and* `DAXPYKERNEL` = `../arm/axpy.c` in
-   `kernel/x86_64/KERNEL.generic`; identical `ifndef`-guarded defaults
-   in legacy `kernel/Makefile.L1`). The per-element work sits in
-   `AXPY_CORE`, an unrolled streaming loop. SIMD variants are separate
-   files (`kernel/x86_64/daxpy.c` + `daxpy_microk_*.c`) selected by
-   `KERNEL.<CORE>` overrides — i.e. **generic body now, per-arch SIMD is
-   purely additive later.**
-2. **Complex sibling** — `kernel/arm/zaxpy.c`: `FLOAT` becomes the real
-   component; arrays are flat interleaved re/im (`x[ix]`, `x[ix+1]`,
-   `inc_x2 = 2*inc_x`); the scalar arrives as the pair `da_r, da_i`;
-   `#if !defined(CONJ)` selects the conjugation convention. Our v1 is
-   always the no-CONJ path. The `z`-prefix-on-the-file convention marks
-   the complex version (`zaxpy.c`, `zscal.c`, `zrot.c`).
-3. **Public entry + glue** — `interface/axpy.c` defines the Fortran-ABI
-   entry `NAME` (`daxpy_`: every argument a pointer) and the CBLAS-style
-   `CNAME` (`daxpy`: values), handles edge cases, and calls the kernel
-   via an `_k` macro (`AXPYU_K → DAXPYU_K → daxpy_k` through
-   `common_macro.h` + `common_d.h`; `_k` prototypes in
-   `common_level1.h`). The per-precision type loop is *build glue*:
-   CMake's `GenerateNamedObjects` (`cmake/utils.cmake`) auto-generates a
-   two-line wrapper per precision (`#define CNAME daxpy_k`, `#define
-   DOUBLE`, `#include` the body) — nothing to hand-write. Default kernel
-   registration: `SetDefaultL1` in `cmake/kernel.cmake` (CMake build) and
-   the `ifndef` blocks in `kernel/Makefile.L1` (legacy build). Both must
-   be patched.
+## Files to add
 
-## Coding guidelines for our patch
+| new file | contains |
+|---|---|
+| `kernel/generic/v3.c` | Layer-1 real bodies → `s3_*`, `d3_*` |
+| `kernel/generic/zv3.c` | Layer-1 complex bodies → `c3_*`, `z3_*` |
+| `kernel/generic/ew.c` | Layer-0 real bodies → `s1_*`, `d1_*` |
+| `kernel/generic/zew.c` | Layer-0 complex bodies → `c1_*`, `z1_*` |
+| `interface/v3.c`, `interface/ew.c` | public entries, both `NAME` and `CNAME` |
+| `include/v3blas.h` | handle typedefs, constructors, status, user prototypes |
 
-### Families and files
+Appended, not rewritten: `_k` prototypes in `common_level1.h`; registration in
+`kernel/Makefile.L1` (legacy build) **and** `cmake/kernel.cmake`
+(`SetDefaultL1`, `cmake/kernel.cmake:37`). Both registration paths must carry
+the change — that is part of the patch, not a follow-up.
 
-Four generic bodies, each compiled twice by the build glue:
+The four body files are named `v3`/`z v3`/`ew`/`z ew` rather than per-op
+because each holds one family. Real and complex are separate files, following
+`axpy.c`/`zaxpy.c`.
 
-| new file | contains | precisions produced |
-|----------|----------|---------------------|
-| `kernel/generic/v3.c`  | Layer-1 real bodies   | `s3_*`, `d3_*` |
-| `kernel/generic/zv3.c` | Layer-1 complex bodies | `c3_*`, `z3_*` |
-| `kernel/generic/ew.c`  | Layer-0 real bodies   | `s*`, `d*` |
-| `kernel/generic/zew.c` | Layer-0 complex bodies | `c*`, `z*` |
+## `_k` ABI — ours, deliberately not stock's
 
-plus:
+Stock's is `int daxpy_k(BLASLONG, BLASLONG, BLASLONG, double, double *, …)`,
+called as `AXPYU_K(n, 0, 0, alpha, x, incx, y, incy, NULL, 0)`. The leading
+zeros and the trailing `NULL, 0` are dummy slots that let one signature serve
+the threaded dispatch. We do not need them, so we do not carry them — four dead
+arguments per call across 19 bodies × 4 precisions is not worth mimicking.
 
-- `interface/v3.c`, `interface/ew.c` — public entries (pattern:
-  `interface/axpy.c`),
-- `include/d3.h`, `include/ew.h` — the handle typedefs (`s3v`…`z3v`:
-  `{ T *x,*y,*z; blaslong n, inc, cinc; }`; `s1v`…`z1v`:
-  `{ T *p; blaslong n, inc; }`), constructor prototypes
-  (`v3blas_create`/`v3blas_wrap`/`v3blas_wrap_component`/`v3blas_component`/`v3blas_pitch`/
-  `v3blas_destroy`), and user prototypes for both layers,
-- appended `_k` prototypes in `common_level1.h`,
-- registration: one `ifndef` block in `kernel/Makefile.L1` +
-  `SetDefaultL1` fallback lines in `cmake/kernel.cmake`, mapping each
-  `<P><OP>KERNEL` name to our generic files.
+```c
+/* Layer 1 */
+int d3cross_k(BLASLONG n, BLASLONG inc,
+              const T *x, const T *y, const T *z, T *cx, T *cy, T *cz);
+/* Layer 0 */
+int d1had_k(BLASLONG n, BLASLONG incx, BLASLONG incy, BLASLONG incz,
+            const T *x, const T *y, T *z);
+```
 
-### Body rules
+Flat, `cinc` left derived inside the body (it is only ever `3 * inc`), pointers
+only — **a kernel body never sees a handle**. The `_k` name is kept because it
+is how OpenBLAS organises every other kernel, and it is what `TARGET`
+overrides and `KERNEL.generic` registration point at.
 
-- Real and complex are separate files (axpy.c/zaxpy.c precedent): the
-  complex body works on `FLOAT` re/im pairs; the real body on plain
-  `FLOAT`.
-- The `_k` kernel ABI stays **flat**: explicit `n` + `inc` + scalars +
-  component pointers. Public entries unwrap the `v3`/`v1` handles
-  (length and stride taken from the handle, all vector operands
-  checked for agreement once) and call flat kernels — kernel bodies
-  never see a handle.
-- **Threading lives in `interface/`, and `_k` kernels stay
-  single-threaded forever.** An entry splits `n` into contiguous chunks, one
-  per thread, and calls the `_k` kernel per range. Do **not** copy
-  `daxpy_k`'s 10-slot dummy ABI — those slots exist for OpenBLAS's own SMP
-  dispatch and we do not want them. Our split needs no ABI growth at all,
-  because a `_k` call already takes `n` and a base pointer: chunk *k* is just
-  `_k(n_k, inc, base + offset_k, …)`.
-- **⚠ unverified — mechanism name to confirm at v0.3.34.** The library's
-  existing entry-threaded ops use a `blas_level1_thread`-style path
-  (`common_macro.h` / `common_thread.h`). Whether that macro is the right
-  thing to reuse for an elementwise L1 op, or whether a hand-rolled static
-  chunk loop calling `_k` per range is simpler and safer, is a patch-time
-  call. The *contract* is fixed either way: threads in the interface, `_k`
-  single-threaded, split on `n`. A hand-rolled loop has one advantage worth
-  weighing — it makes the chunk boundaries and the single-threaded threshold
-  explicit and auditable, where a generic macro hides both.
-- **Chunk, never interleave.** Each thread gets a contiguous range so its
-  prefetcher sees a linear stream. A static split with no work stealing is
-  sufficient: at N = 10⁸ over 16 threads each chunk is ~150 MB, so imbalance
-  is noise. Thread *k*'s range need not start on a vector-width boundary; each
-  thread pays a misaligned prologue, which is invisible on a
-  memory-bound kernel.
-- **One threshold policy, both layers.** Below a per-op element count the
-  entry runs single-threaded, because fork overhead exceeds the work. The
-  number is measured per op per build. Layer 1 splits the handle's `n`; Layer 0
-  splits its `n` argument. Same code path.
-- **No thread-count knob of our own.** Read the count the library already
-  exposes: the global the entries already consult (`blas_cpu_number`), which
-  `openblas_set_num_threads(int)` / the `OPENBLAS_NUM_THREADS` environment
-  variable already drive. Introducing a second control next to the first is a
-  wart that never goes away, and the premise is landing inside `libblas`.
-  *⚠ unverified — confirm the global's name and linkage at v0.3.34.*
-- **Error reporting goes through the library's existing CBLAS status.**
-  Entries call `cblas_xtSetErrorStatus` with `CBLAS_PARAM`, which is the
-  channel CBLAS already defines and OpenBLAS already implements; there is no
-  new error hook, no `abort`, and no `info` argument. Validation happens once
-  at entry, before any store, so a rejected call leaves the output untouched
-  (README §Validation — the table there is normative, this
-  paragraph only says which symbol carries it). `n == 0` returns immediately
-  without setting the status, matching CBLAS's quick return.
-  *⚠ unverified — confirm the exact spelling and whether `CBLAS_PARAM` is
-  reachable from `interface/` without a new export at v0.3.34.*
-- One `*_CORE`-style inner loop per kernel: unrolled streaming pass, no
-  tiling (memory-bound by design). FMA shape per the spec's inner-loop
-  table (`fma(a,b,c)` wherever a multiply feeds an add; pure
-  scales/chains/divisions stay plain — the mul/div floor).
-- Cross-fusing kernels (a cross feeding a contraction): cross in
-  registers, contraction in registers, intermediate never stored.
-- Complex: flat interleaved, scaled kernels take `(a_r, a_i)`; never
-  conjugate; keep the `#if !defined(CONJ)`-style switch dormant so the
-  Hermitian variant is a later, additive decision.
-- Entries: validate per the README table — quick return on `n == 0`;
-  parameter error on `n < 0`, NULL, `inc < 1`, Layer-1 `inc != 1`, and any
-  operand disagreement — then unwrap descriptors and make one flat call into
-  the `_k` kernel. For kernels whose *entire* RHS is `a·(…)`, `a == 0` stores
-  zeros and returns; kernels with extra terms get no such shortcut.
-- Allocator (`v3blas_create`): one block of `v3blas_pitch(n)` elements, where
-  `v3blas_pitch(n) = ((3n + 7) / 8) * 8` — **fixed 8, never the build's vector
-  width.** This is a spec decision, not a tuning knob, and it deliberately
-  overrides the obvious choice: rounding to the widest register makes the
-  pitch a function of the build, so a buffer wrapped by one build can be
-  misaligned in another, and `v3blas_pitch` can return *fewer* bytes than the
-  buffer actually holds. Fixed 8 makes pitch a stable ABI fact, gives
-  64-byte alignment for `double` at any `n`, and bounds the waste at 7
-  elements total. **Consequence for this guide: the unrolled width is now a
-  free choice** (§SIMD below), because nothing outside `v3blas_create` depends on
-  it any more. A fourth component would buy nothing: `y` lands at `base + n`
-  whether there are three or four, so the constraint is `n`, not the component
-  count. `inc = 1`. **The pitch stays inside the allocator** — it is not a
-  handle field and must never reach a kernel — except that `v3blas_pitch(n)` is
-  public, so a caller who `malloc`s and wraps matches it exactly.
-- **No tail padding, no store past `n`** (spec principle 6): every inner
-  loop is a wide unrolled body plus a scalar tail. The inter-component
-  pitch above is *not* slack — it is never written, and it does not relax
-  this rule. There is no alignment/flag test to select a fast path, because
-  the entry point cannot distinguish a created vector from a wrapped one.
-  Reallocating this later would be an ABI break, so it is settled now.
-- **Strides**: the `_k` ABI takes `inc` alongside `n`. The core is
-  written once for `inc == 1` (the `*_CORE` unrolled body) and the
-  entry branches on `inc` exactly as `daxpy` does — `inc == 1` → core,
-  otherwise a scalar stepping loop `x[i*inc]`. Vectorized strided
-  variants are out of scope for v1 (see README §Not in v1).
-- **SIMD: plain portable C for v1, no intrinsics.** Inner loops are
-  scalar-typed and hand-unrolled 4×, letting the compiler's auto-vectorizer
-  emit whatever the build target enables. There are no `#include
-  <immintrin.h>` files, no per-arch bodies, and no runtime dispatch of our
-  own — OpenBLAS's existing `TARGET` mechanism already selects the
-  compiler flags and the CPU the binary is built for, so a per-arch
-  override remains available later as an additive change to *this* file.
-  **Consequence for the spec's acceptance criterion 4:** a portable build
-  will not reach 90% of streaming bandwidth on AVX-512 hardware, so that
-  number is per-implementation, not a property of the kernel set. The
-  honest v1 target is "no slower than the hand-written scalar reference
-  the compiler itself produces", with the ratio *measured* and recorded
-  here rather than asserted in the spec. A later implementation that adds
-  intrinsics can carry a bandwidth number; this one does not.
+## Entry structure
 
-### Naming inside the tree
+Each public entry does, in order:
 
-- Symbol form: `<precision-letter><width><op>` — trailing `_` for
-  the Fortran entry, no underscore for the C name, `_k` suffix for the
-  internal kernel, exactly as stock BLAS relates `daxpy_`/`daxpy`/
-  `daxpy_k`.
-- Width is in the symbol: `s3`/`d3`/`c3`/`z3` for Layer 1,
-  `s1`/`d1`/`c1`/`z1` for Layer 0. **The `1` is not optional for Layer
-  0** — stock BLAS already exports `dscal`, `daxpy` and `daxpby`, each with a
-  different signature, and C has no overloading, so a collision would link
-  cleanly and run the wrong function. Nothing in stock BLAS begins
-  `<precision>1`.
-- Op names come from the README, not restated here. Header include guard +
-  prototype blocks mirror `common_level1.h` style. Constructors carry the
-  `v3blas_` prefix; kernel symbols do not.
+1. **Validate** (README §Validation) — `n == 0` returns immediately with the
+   status untouched; every other fault sets `V3BLAS_PARAM`. Complete before any
+   store, so a rejected call leaves the output as it was.
+2. **Handle the stride** — `inc == 1` → the wide `*_CORE` body; otherwise a
+   scalar stepping loop `x[i*inc]`, and for `inc < 0` start at
+   `x + (n-1)*|inc|`. Layer 0 additionally takes `inc == 0` as broadcast.
+3. **Split and dispatch** — see below.
 
-### What the patch must NOT do
+## Threading
 
-- No new library, no new `.so`, no new CMake target — additions land in
-  the existing `libblas`.
-- No changes to existing routines; only *added* files plus appended
-  lines (`common_level1.h`, `Makefile.L1`, `cmake/kernel.cmake`). A
-  clean, mergeable, append-only patch.
+`interface/axpy.c` already sets the precedent: `nthreads = num_cpu_avail(1)`,
+forced to 1 when `n <= MULTI_THREAD_MINIMAL`, then dispatch. We take both from
+there — `num_cpu_avail(int)` (`common_thread.h:143`, which honours
+`openblas_set_num_threads` and OpenBLAS's OpenMP mode) and `MULTI_THREAD_MINIMAL`
+— so v3blas adds no knob of its own and inherits the host's threshold.
+
+The spawn is `exec_blas(BLASLONG num_cpu, blas_param_t *param, void *buffer)`
+(`common_thread.h:198`), **not** `blas_level1_thread`
+(`common_thread.h:206`). The latter takes three operand slots, one scalar, and
+a cast function pointer, which fits `d3cross` and `d3had` and fits none of
+`d3axpby`, `d3crossdot` or the three forks — three mechanisms for nineteen
+bodies means three places for an SMP bug. `exec_blas` has no arity limit: we
+define one param struct per family, holding the kernel id plus the argument
+tuple, and hand the spawned function that single `void *`.
+
+Split `n` into contiguous chunks, never interleaved, so each thread's
+prefetcher gets a linear stream. No work stealing: at N = 10⁸ over 16 threads
+each chunk is ~150 MB, so imbalance is noise. Thread *k*'s range need not start
+on a vector-width boundary; each thread pays a misaligned prologue, invisible
+on a memory-bound kernel. `blas_cpu_number` (`common_thread.h:54`) is the count
+the rest of the library already consults.
+
+## What the patch must NOT do
+
+- No new library, no new `.so`, no new CMake target — additions land in the
+  existing `libblas`.
+- No changes to existing routines; only *added* files plus appended lines
+  (`common_level1.h`, `kernel/Makefile.L1`, `cmake/kernel.cmake`). A clean,
+  mergeable, append-only patch.
 - No C++.
-
-## Host repo layout (this folder)
-
-    v3blas/
-    ├── .git                      # repo
-    ├── README.md                 # the spec: kernel set + API contract
-    ├── docs/implementation/      # one working document per target library
-    ├── subm/openblas/            # submodule → OpenBLAS, pinned to v0.3.34
-    ├── patch/0001-*.patch        # format-patch of branch v3blas in the submodule
-    ├── tests/
-    │   ├── test_v3.c             # links ONLY -lblas -lm
-    │   └── Makefile
-    └── Makefile                  # submodule init → patch apply → build
-
-Develop on a branch inside the `subm/openblas/` checkout; `patch/` is
-regenerated from it, never hand-edited. The repo hosts docs + patch +
-tests + glue — no duplicated source.
 
 ## Build & test loop
 
-1. Branch `v3blas` inside `subm/openblas/`; code the four bodies + two interface
-   files + headers + registration lines.
-2. Build (`make` legacy and/or CMake config — both registration paths
-   must work).
-3. `nm -D libblas.so` check → the complete symbol set of the kernel
-   spec (it states its own counts), beside stock `saxpy_`.
-4. `tests/test_v3.c`: pure C, links `-lblas -lm` only; four precisions;
-   random + edge N (0, 1, odd, unaligned); the kernel spec's test
-   identities — **re-run at every thread count the library offers**, since a
-   split on `n` must not change an output bit, and the canaries must hold
-   after threaded calls too.
-5. `git -C subm/openblas format-patch` → `patch/0001-*.patch`.
+1. Branch `v3blas` inside `subm/openblas/`.
+2. Build with `make` first. CMake is flagged incomplete and experimental
+   upstream, and is not installed here — the CMake registration still ships in
+   the patch, but the Makefile path is the one that gets tested.
+3. `nm -D lib*.so` → exactly the 120 symbols of README acceptance criterion 1.
+4. `tests/test_v3.c` — pure C, links `-lblas -lm` only, run at every thread
+   count the library offers.
+5. `git -C subm/openblas format-patch` → `patch/0001-*.patch`. Regenerated from
+   the branch, never hand-edited.
 
-## OpenBLAS-specific open items
-
-- **Initialize and build `subm/openblas/` at v0.3.34**, then close the
-  **⚠ unverified** marks above. Until then every path name here
-  (`kernel/generic/`, `kernel/Makefile.L1`, `cmake/kernel.cmake`,
-  `common_level1.h`, `interface/axpy.c`) is a claim from reading the tree,
-  not a fact about the pin.
-- Confirm with maintainers when PR-ing: placement of new portable L1
-  bodies (`kernel/generic/` vs `kernel/arm/`-style cross-reference —
-  precedent shows x86_64 happily including `../arm/axpy.c`), and whether
-  both build systems must carry the registration in the PR (assumed yes).
+OpenBLAS is not yet built in this environment, so none of the above has run.

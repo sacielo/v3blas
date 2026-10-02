@@ -1,4 +1,13 @@
 [submodule "subm/openblas"]
 	path = subm/openblas
 	url = https://github.com/OpenMathLib/OpenBLAS.git
-	branch = v0.3.34
+	# Pinned to the release TAG v0.3.34, not a branch: `branch` is meaningless
+	# for a tag pin (git ignores it) and it silently follows master instead.
+	# The exact commit is recorded in the gitlink, so `git submodule update
+	# --init` is reproducible for anyone who clones this repo.
+	#
+	# shallow = true keeps the initial clone small -- OpenBLAS's full history is
+	# over a gigabyte and we only ever need the pinned tree. Rebasing the patch
+	# onto a newer release needs more history:
+	#     git -C subm/openblas fetch --unshallow
+	shallow = true
